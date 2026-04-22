@@ -1,0 +1,58 @@
+
+module sdl;
+
+// Types
+typedef Condition = void;
+typedef Mutex = void;
+typedef RWLock = void;
+typedef Semaphore = void;
+
+
+// Structs
+struct InitState
+{
+	AtomicInt status;
+	ThreadID thread;
+	void* reserved;
+}
+
+
+// Enums
+enum InitStatus
+{
+	UNINITIALIZED,
+	INITIALIZING,
+	INITIALIZED,
+	UNINITIALIZING,
+}
+
+
+// Functions
+extern fn void broadcast_condition(Condition* cond) @cname("SDL_BroadcastCondition");
+extern fn Condition* create_condition() @cname("SDL_CreateCondition");
+extern fn Mutex* create_mutex() @cname("SDL_CreateMutex");
+extern fn RWLock* create_rw_lock() @cname("SDL_CreateRWLock");
+extern fn Semaphore* create_semaphore(uint initial_value) @cname("SDL_CreateSemaphore");
+extern fn void destroy_condition(Condition* cond) @cname("SDL_DestroyCondition");
+extern fn void destroy_mutex(Mutex* mutex) @cname("SDL_DestroyMutex");
+extern fn void destroy_rw_lock(RWLock* rwlock) @cname("SDL_DestroyRWLock");
+extern fn void destroy_semaphore(Semaphore* sem) @cname("SDL_DestroySemaphore");
+extern fn uint get_semaphore_value(Semaphore* sem) @cname("SDL_GetSemaphoreValue");
+extern fn void lock_mutex(Mutex* mutex) @cname("SDL_LockMutex");
+extern fn void lock_rw_lock_for_reading(RWLock* rwlock) @cname("SDL_LockRWLockForReading");
+extern fn void lock_rw_lock_for_writing(RWLock* rwlock) @cname("SDL_LockRWLockForWriting");
+extern fn void set_initialized(InitState* state, bool initialized) @cname("SDL_SetInitialized");
+extern fn bool should_init(InitState* state) @cname("SDL_ShouldInit");
+extern fn bool should_quit(InitState* state) @cname("SDL_ShouldQuit");
+extern fn void signal_condition(Condition* cond) @cname("SDL_SignalCondition");
+extern fn void signal_semaphore(Semaphore* sem) @cname("SDL_SignalSemaphore");
+extern fn bool try_lock_mutex(Mutex* mutex) @cname("SDL_TryLockMutex");
+extern fn bool try_lock_rw_lock_for_reading(RWLock* rwlock) @cname("SDL_TryLockRWLockForReading");
+extern fn bool try_lock_rw_lock_for_writing(RWLock* rwlock) @cname("SDL_TryLockRWLockForWriting");
+extern fn bool try_wait_semaphore(Semaphore* sem) @cname("SDL_TryWaitSemaphore");
+extern fn void unlock_mutex(Mutex* mutex) @cname("SDL_UnlockMutex");
+extern fn void unlock_rw_lock(RWLock* rwlock) @cname("SDL_UnlockRWLock");
+extern fn void wait_condition(Condition* cond, Mutex *mutex) @cname("SDL_WaitCondition");
+extern fn bool wait_condition_timeout(Condition* cond, Mutex* mutex, int timeoutMS) @cname("SDL_WaitConditionTimeout");
+extern fn void wait_semaphore(Semaphore* sem) @cname("SDL_WaitSemaphore");
+extern fn bool wait_semaphore_timeout(Semaphore* sem, int timeoutMS) @cname("SDL_WaitSemaphoreTimeout");

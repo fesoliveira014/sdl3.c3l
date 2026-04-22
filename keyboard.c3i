@@ -1,0 +1,64 @@
+
+module sdl;
+
+// Types
+typedef KeyboardID = uint;
+
+
+// Enums
+enum Capitalization
+{
+	NONE,        /**< No auto-capitalization will be done */
+	SENTENCES,   /**< The first letter of sentences will be capitalized */
+	WORDS,       /**< The first letter of words will be capitalized */
+	LETTERS,     /**< All letters will be capitalized */
+}
+
+enum TextInputType
+{
+	TEXT,                        /**< The input is text */
+	TEXT_NAME,                   /**< The input is a person's name */
+	TEXT_EMAIL,                  /**< The input is an e-mail address */
+	TEXT_USERNAME,               /**< The input is a username */
+	TEXT_PASSWORD_HIDDEN,        /**< The input is a secure password that is hidden */
+	TEXT_PASSWORD_VISIBLE,       /**< The input is a secure password that is visible */
+	NUMBER,                      /**< The input is a number */
+	NUMBER_PASSWORD_HIDDEN,      /**< The input is a secure PIN that is hidden */
+	NUMBER_PASSWORD_VISIBLE,     /**< The input is a secure PIN that is visible */
+}
+
+constdef TextInputProperties : ZString
+{
+	TYPE_NUMBER              = "SDL.textinput.type",
+	CAPITALIZATION_NUMBER    = "SDL.textinput.capitalization",
+	AUTOCORRECT_BOOLEAN      = "SDL.textinput.autocorrect",
+	MULTILINE_BOOLEAN        = "SDL.textinput.multiline",
+	ANDROID_INPUTTYPE_NUMBER = "SDL.textinput.android.inputtype",
+}
+
+
+// Functions
+extern fn bool clear_composition(Window* window) @cname("SDL_ClearComposition");
+extern fn Window* get_keyboard_focus() @cname("SDL_GetKeyboardFocus");
+extern fn char* get_keyboard_name_for_id(KeyboardID instance_id) @cname("SDL_GetKeyboardNameForID");
+extern fn KeyboardID* get_keyboards(int* count) @cname("SDL_GetKeyboards");
+extern fn bool* get_keyboard_state(int* numkeys) @cname("SDL_GetKeyboardState");
+extern fn Keycode get_key_from_name(char* name) @cname("SDL_GetKeyFromName");
+extern fn Keycode get_key_from_scancode(Scancode scancode, Keymod modstate, bool key_event) @cname("SDL_GetKeyFromScancode");
+extern fn char* get_key_name(Keycode key) @cname("SDL_GetKeyName");
+extern fn Keymod get_mod_state() @cname("SDL_GetModState");
+extern fn Scancode get_scancode_from_key(Keycode key, Keymod* modstate) @cname("SDL_GetScancodeFromKey");
+extern fn Scancode get_scancode_from_name(char* name) @cname("SDL_GetScancodeFromName");
+extern fn char* get_scancode_name(Scancode scancode) @cname("SDL_GetScancodeName");
+extern fn bool get_text_input_area(Window* window, Rect* rect, int* cursor) @cname("SDL_GetTextInputArea");
+extern fn bool has_keyboard() @cname("SDL_HasKeyboard");
+extern fn bool has_screen_keyboard_support() @cname("SDL_HasScreenKeyboardSupport");
+extern fn void reset_keyboard() @cname("SDL_ResetKeyboard");
+extern fn bool screen_keyboard_shown(Window* window) @cname("SDL_ScreenKeyboardShown");
+extern fn void set_mod_state(Keymod modstate) @cname("SDL_SetModState");
+extern fn bool set_scancode_name(Scancode scancode, char* name) @cname("SDL_SetScancodeName");
+extern fn bool set_text_input_area(Window* window, Rect* rect, int cursor) @cname("SDL_SetTextInputArea");
+extern fn bool start_text_input(Window* window) @cname("SDL_StartTextInput");
+extern fn bool start_text_input_with_properties(Window* window, PropertiesID props) @cname("SDL_StartTextInputWithProperties");
+extern fn bool stop_text_input(Window* window) @cname("SDL_StopTextInput");
+extern fn bool text_input_active(Window* window) @cname("SDL_TextInputActive");

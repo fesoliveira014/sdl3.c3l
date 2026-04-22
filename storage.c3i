@@ -1,0 +1,67 @@
+
+module sdl;
+
+// Types
+typedef Storage = void;
+alias StorageCloseCallback = fn bool(void* userdata);
+alias StorageReadyCallback = fn bool(void* userdata);
+alias StorageEnumerateCallback = fn bool(void* userdata, char* path, EnumerateDirectoryCallback callback, void* callback_userdata);
+alias StorageInfoCallback = fn bool(void* userdata, char* path, PathInfo* info);
+alias StorageReadFileCallback = fn bool(void* userdata, char* path, void* destination, ulong length);
+alias StorageWriteFileCallback = fn bool(void* userdata, char* path, void* source, ulong length);
+alias StorageMkDirCallback = fn bool(void* userdata, char* path);
+alias StorageRemoveCallback = fn bool(void* userdata, char* path);
+alias StorageRenameCallback = fn bool(void* userdata, char* oldPath, char* newPath);
+alias StorageCopyCallback = fn bool(void* userdata, char* oldPath, char* newPath);
+alias StorageSpaceRemainingCallback = fn ulong(void* userdata);
+
+
+// Structs
+struct StorageInterface
+{
+	/* The version of this interface */
+	uint version;
+
+	/* Called when the storage is closed */
+	StorageCloseCallback close;
+	/* Optional, returns whether the storage is currently ready for access */
+	StorageReadyCallback ready;
+	/* StorageEnumerateCallback a directory, optional for write-only storage */
+	StorageEnumerateCallback enumerate;
+	/* Get path information, optional for write-only storage */
+	StorageInfoCallback info;
+	/* Read a file from storage, optional for write-only storage */
+	StorageReadFileCallback read_file;
+	/* Write a file to storage, optional for read-only storage */
+	StorageWriteFileCallback write_file;
+	/* Create a directory, optional for read-only storage */
+	StorageMkDirCallback mkdir;
+	/* StorageRemoveCallback a file or empty directory, optional for read-only storage */
+	StorageRemoveCallback remove;
+	/* StorageRenameCallback a path, optional for read-only storage */
+	StorageRenameCallback rename;
+	/* StorageCopyCallback a file, optional for read-only storage */
+	StorageCopyCallback copy;
+	/* Get the space remaining, optional for read-only storage */
+	StorageSpaceRemainingCallback space_remaining;
+}
+
+
+// Functions
+extern fn bool close_storage(Storage *storage) @cname("SDL_CloseStorage");
+extern fn bool copy_storage_file(Storage* storage, char* oldpath, char* newpath) @cname("SDL_CopyStorageFile");
+extern fn bool create_storage_directory(Storage* storage, char* path) @cname("SDL_CreateStorageDirectory");
+extern fn bool enumerate_storage_directory(Storage* storage, char* path, EnumerateDirectoryCallback callback, void* userdata) @cname("SDL_EnumerateStorageDirectory");
+extern fn bool get_storage_file_size(Storage* storage, char* path, ulong* length) @cname("SDL_GetStorageFileSize");
+extern fn bool get_storage_path_info(Storage* storage, char* path, PathInfo* info) @cname("SDL_GetStoragePathInfo");
+extern fn ulong get_storage_space_remaining(Storage* storage) @cname("SDL_GetStorageSpaceRemaining");
+extern fn char** glob_storage_directory(Storage* storage, char* path, char* pattern, GlobFlags flags, int* count) @cname("SDL_GlobStorageDirectory");
+extern fn Storage* open_file_storage(char* path) @cname("SDL_OpenFileStorage");
+extern fn Storage* open_storage(StorageInterface* iface, void* userdata) @cname("SDL_OpenStorage");
+extern fn Storage* open_title_storage(char* override, PropertiesID props) @cname("SDL_OpenTitleStorage");
+extern fn Storage* open_user_storage(char* org, char* app, PropertiesID props) @cname("SDL_OpenUserStorage");
+extern fn bool read_storage_file(Storage* storage, char* path, void* destination, ulong length) @cname("SDL_ReadStorageFile");
+extern fn bool remove_storage_path(Storage* storage, char* path) @cname("SDL_RemoveStoragePath");
+extern fn bool rename_storage_path(Storage* storage, char* oldpath, char* newpath) @cname("SDL_RenameStoragePath");
+extern fn bool storage_ready(Storage *storage) @cname("SDL_StorageReady");
+extern fn bool write_storage_file(Storage* storage, char* path, void* source, ulong length) @cname("SDL_WriteStorageFile");

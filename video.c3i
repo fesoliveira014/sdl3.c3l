@@ -1,0 +1,424 @@
+
+module sdl;
+
+// Constants
+const WINDOWPOS_UNDEFINED_MASK = 0x1FFF0000u;
+const WINDOWPOS_CENTERED_MASK = 0x2FFF0000u;
+
+
+// Types
+typedef DisplayID = uint;
+typedef DisplayModeData = void;
+typedef EGLAttrib = iptr;
+alias EGLAttribArrayCallback = fn EGLAttrib*(void* userdata);
+typedef EGLConfig = inline void*;
+typedef EGLDisplay = inline void*;
+typedef EGLint = int;
+alias EGLIntArrayCallback = fn EGLint*(void* userdata, EGLDisplay display, EGLConfig config);
+typedef EGLSurface = inline void*;
+typedef GLContext = inline void*;
+alias HitTestCallback = fn HitTestResult(Window *win, Point* area, void* data);
+typedef Window = void;
+typedef WindowID = uint;
+
+
+// Bitstructs
+bitstruct GLContextFlag : uint
+{
+	bool debug;
+	bool forward_compatible;
+	bool robust_access;
+	bool reset_isolation;
+}
+
+bitstruct GLContextReleaseFlag : uint
+{
+	bool none;
+	bool flush;
+}
+
+bitstruct GLContextResetNotification : uint
+{
+	bool no_notification;
+	bool lose_context;
+}
+
+bitstruct GLProfile : uint
+{
+	bool core;
+	bool compatibility;
+	bool es;
+}
+
+bitstruct WindowFlags : ulong
+{
+	bool fullscreen          : 0;
+	bool opengl              : 1;
+	bool occluded            : 2;
+	bool hidden              : 3;
+	bool borderless          : 4;
+	bool resizable           : 5;
+	bool minimized           : 6;
+	bool maximized           : 7;
+	bool mouse_grabbed       : 8;
+	bool input_focus         : 9;
+	bool mouse_focus         : 10;
+	bool external            : 11;
+	bool modal               : 12;
+	bool high_pixel_density  : 13;
+	bool mouse_capture       : 14;
+	bool mouse_relative_mode : 15;
+	bool always_on_top       : 16;
+	bool utility             : 17;
+	bool tooltip             : 18;
+	bool popup_menu          : 19;
+	bool keyboard_grabbed    : 20;
+	bool fill_document       : 21;
+	bool vulkan              : 28;
+	bool metal               : 29;
+	bool transparent         : 30;
+	bool not_focusable       : 31;
+}
+
+
+// Structs
+struct DisplayMode
+{
+	DisplayID displayID;
+	PixelFormat format;
+	int w, h;
+	float pixel_density;
+	float refresh_rate;
+	int refresh_rate_numerator;
+	int refresh_rate_denominator;
+	DisplayModeData* internal;
+}
+
+
+// Enums
+enum DisplayOrientation
+{
+	UNKNOWN,
+	LANDSCAPE,
+	LANDSCAPE_FLIPPED,
+	PORTRAIT,
+	PORTRAIT_FLIPPED,
+}
+
+enum FlashOperation
+{
+	CANCEL,
+	BRIEFLY,
+	UNTIL_FOCUSED,
+}
+
+enum GLAttr
+{
+	RED_SIZE,                    /**< the minimum number of bits for the red channel of the color buffer; defaults to 8. */
+	GREEN_SIZE,                  /**< the minimum number of bits for the green channel of the color buffer; defaults to 8. */
+	BLUE_SIZE,                   /**< the minimum number of bits for the blue channel of the color buffer; defaults to 8. */
+	ALPHA_SIZE,                  /**< the minimum number of bits for the alpha channel of the color buffer; defaults to 8. */
+	BUFFER_SIZE,                 /**< the minimum number of bits for frame buffer size; defaults to 0. */
+	DOUBLEBUFFER,                /**< whether the output is single or double buffered; defaults to double buffering on. */
+	DEPTH_SIZE,                  /**< the minimum number of bits in the depth buffer; defaults to 16. */
+	STENCIL_SIZE,                /**< the minimum number of bits in the stencil buffer; defaults to 0. */
+	ACCUM_RED_SIZE,              /**< the minimum number of bits for the red channel of the accumulation buffer; defaults to 0. */
+	ACCUM_GREEN_SIZE,            /**< the minimum number of bits for the green channel of the accumulation buffer; defaults to 0. */
+	ACCUM_BLUE_SIZE,             /**< the minimum number of bits for the blue channel of the accumulation buffer; defaults to 0. */
+	ACCUM_ALPHA_SIZE,            /**< the minimum number of bits for the alpha channel of the accumulation buffer; defaults to 0. */
+	STEREO,                      /**< whether the output is stereo 3D; defaults to off. */
+	MULTISAMPLEBUFFERS,          /**< the number of buffers used for multisample anti-aliasing; defaults to 0. */
+	MULTISAMPLESAMPLES,          /**< the number of samples used around the current pixel used for multisample anti-aliasing. */
+	ACCELERATED_VISUAL,          /**< set to 1 to require hardware acceleration, set to 0 to force software rendering; defaults to allow either. */
+	RETAINED_BACKING,            /**< not used (deprecated). */
+	CONTEXT_MAJOR_VERSION,       /**< OpenGL context major version. */
+	CONTEXT_MINOR_VERSION,       /**< OpenGL context minor version. */
+	CONTEXT_FLAGS,               /**< some combination of 0 or more of elements of the SDL_GLContextFlag enumeration; defaults to 0. */
+	CONTEXT_PROFILE_MASK,        /**< type of GL context (Core, Compatibility, ES). See SDL_GLProfile; default value depends on platform. */
+	SHARE_WITH_CURRENT_CONTEXT,  /**< OpenGL context sharing; defaults to 0. */
+	FRAMEBUFFER_SRGB_CAPABLE,    /**< requests sRGB capable visual; defaults to 0. */
+	CONTEXT_RELEASE_BEHAVIOR,    /**< sets context the release behavior. See SDL_GLContextReleaseFlag; defaults to FLUSH. */
+	CONTEXT_RESET_NOTIFICATION,  /**< set context reset notification. See SDL_GLContextResetNotification; defaults to NO_NOTIFICATION. */
+	CONTEXT_NO_ERROR,
+	FLOATBUFFERS,
+	EGL_PLATFORM,
+}
+
+enum HitTestResult
+{
+	NORMAL,             /**< Region is normal. No special properties. */
+	DRAGGABLE,          /**< Region can drag entire window. */
+	RESIZE_TOPLEFT,     /**< Region is the resizable top-left corner border. */
+	RESIZE_TOP,         /**< Region is the resizable top border. */
+	RESIZE_TOPRIGHT,    /**< Region is the resizable top-right corner border. */
+	RESIZE_RIGHT,       /**< Region is the resizable right border. */
+	RESIZE_BOTTOMRIGHT, /**< Region is the resizable bottom-right corner border. */
+	RESIZE_BOTTOM,      /**< Region is the resizable bottom border. */
+	RESIZE_BOTTOMLEFT,  /**< Region is the resizable bottom-left corner border. */
+	RESIZE_LEFT,        /**< Region is the resizable left border. */
+}
+
+constdef ProgressState : CInt
+{
+	INVALID = -1,  /**< An invalid progress state indicating an error; check SDL_GetError() */
+	NONE,          /**< No progress bar is shown */
+	INDETERMINATE, /**< The progress bar is shown in a indeterminate state */
+	NORMAL,        /**< The progress bar is shown in a normal state */
+	PAUSED,        /**< The progress bar is shown in a paused state */
+	ERROR,         /**< The progress bar is shown in a state indicating the application had an error */
+}
+
+enum SystemTheme
+{
+	UNKNOWN,   /**< Unknown system theme */
+	LIGHT,     /**< Light colored system theme */
+	DARK       /**< Dark colored system theme */
+}
+
+constdef WindowSurfaceVSync : CInt
+{
+	DISABLED =  0,
+	ADAPTIVE = -1,
+}
+
+constdef GlobalVideoWaylandProperties : ZString
+{
+	WL_DISPLAY_POINTER = "SDL.video.wayland.wl_display",
+}
+
+constdef DisplayProperties : ZString
+{
+	HDR_ENABLED_BOOLEAN             = "SDL.display.HDR_enabled",
+	KMSDRM_PANEL_ORIENTATION_NUMBER = "SDL.display.KMSDRM.panel_orientation",
+	WAYLAND_WL_OUTPUT_POINTER       = "SDL.display.wayland.wl_output",
+	WINDOWS_HMONITOR_POINTER        = "SDL.display.windows.hmonitor",
+}
+
+constdef WindowCreateProperties : ZString
+{
+	ALWAYS_ON_TOP_BOOLEAN               = "SDL.window.create.always_on_top",
+	BORDERLESS_BOOLEAN                  = "SDL.window.create.borderless",
+	CONSTRAIN_POPUP_BOOLEAN             = "SDL.window.create.constrain_popup",
+	FOCUSABLE_BOOLEAN                   = "SDL.window.create.focusable",
+	EXTERNAL_GRAPHICS_CONTEXT_BOOLEAN   = "SDL.window.create.external_graphics_context",
+	FLAGS_NUMBER                        = "SDL.window.create.flags",
+	FULLSCREEN_BOOLEAN                  = "SDL.window.create.fullscreen",
+	HEIGHT_NUMBER                       = "SDL.window.create.height",
+	HIDDEN_BOOLEAN                      = "SDL.window.create.hidden",
+	HIGH_PIXEL_DENSITY_BOOLEAN          = "SDL.window.create.high_pixel_density",
+	MAXIMIZED_BOOLEAN                   = "SDL.window.create.maximized",
+	MENU_BOOLEAN                        = "SDL.window.create.menu",
+	METAL_BOOLEAN                       = "SDL.window.create.metal",
+	MINIMIZED_BOOLEAN                   = "SDL.window.create.minimized",
+	MODAL_BOOLEAN                       = "SDL.window.create.modal",
+	MOUSE_GRABBED_BOOLEAN               = "SDL.window.create.mouse_grabbed",
+	OPENGL_BOOLEAN                      = "SDL.window.create.opengl",
+	PARENT_POINTER                      = "SDL.window.create.parent",
+	RESIZABLE_BOOLEAN                   = "SDL.window.create.resizable",
+	TITLE_STRING                        = "SDL.window.create.title",
+	TRANSPARENT_BOOLEAN                 = "SDL.window.create.transparent",
+	TOOLTIP_BOOLEAN                     = "SDL.window.create.tooltip",
+	UTILITY_BOOLEAN                     = "SDL.window.create.utility",
+	VULKAN_BOOLEAN                      = "SDL.window.create.vulkan",
+	WIDTH_NUMBER                        = "SDL.window.create.width",
+	X_NUMBER                            = "SDL.window.create.x",
+	Y_NUMBER                            = "SDL.window.create.y",
+	COCOA_WINDOW_POINTER                = "SDL.window.create.cocoa.window",
+	COCOA_VIEW_POINTER                  = "SDL.window.create.cocoa.view",
+	WINDOWSCENE_POINTER                 = "SDL.window.create.uikit.windowscene",
+	WAYLAND_SURFACE_ROLE_CUSTOM_BOOLEAN = "SDL.window.create.wayland.surface_role_custom",
+	WAYLAND_CREATE_EGL_WINDOW_BOOLEAN   = "SDL.window.create.wayland.create_egl_window",
+	WAYLAND_WL_SURFACE_POINTER          = "SDL.window.create.wayland.wl_surface",
+	WIN32_HWND_POINTER                  = "SDL.window.create.win32.hwnd",
+	WIN32_PIXEL_FORMAT_HWND_POINTER     = "SDL.window.create.win32.pixel_format_hwnd",
+	X11_WINDOW_NUMBER                   = "SDL.window.create.x11.window",
+	EMSCRIPTEN_CANVAS_ID_STRING         = "SDL.window.create.emscripten.canvas_id",
+	EMSCRIPTEN_KEYBOARD_ELEMENT_STRING  = "SDL.window.create.emscripten.keyboard_element",
+}
+
+constdef WindowProperties : ZString
+{
+	SHAPE_POINTER                             = "SDL.window.shape",
+	HDR_ENABLED_BOOLEAN                       = "SDL.window.HDR_enabled",
+	SDR_WHITE_LEVEL_FLOAT                     = "SDL.window.SDR_white_level",
+	HDR_HEADROOM_FLOAT                        = "SDL.window.HDR_headroom",
+	ANDROID_WINDOW_POINTER                    = "SDL.window.android.window",
+	ANDROID_SURFACE_POINTER                   = "SDL.window.android.surface",
+	UIKIT_WINDOW_POINTER                      = "SDL.window.uikit.window",
+	UIKIT_METAL_VIEW_TAG_NUMBER               = "SDL.window.uikit.metal_view_tag",
+	UIKIT_OPENGL_FRAMEBUFFER_NUMBER           = "SDL.window.uikit.opengl.framebuffer",
+	UIKIT_OPENGL_RENDERBUFFER_NUMBER          = "SDL.window.uikit.opengl.renderbuffer",
+	UIKIT_OPENGL_RESOLVE_FRAMEBUFFER_NUMBER   = "SDL.window.uikit.opengl.resolve_framebuffer",
+	KMSDRM_DEVICE_INDEX_NUMBER                = "SDL.window.kmsdrm.dev_index",
+	KMSDRM_DRM_FD_NUMBER                      = "SDL.window.kmsdrm.drm_fd",
+	KMSDRM_GBM_DEVICE_POINTER                 = "SDL.window.kmsdrm.gbm_dev",
+	COCOA_WINDOW_POINTER                      = "SDL.window.cocoa.window",
+	COCOA_METAL_VIEW_TAG_NUMBER               = "SDL.window.cocoa.metal_view_tag",
+	OPENVR_OVERLAY_ID_NUMBER                  = "SDL.window.openvr.overlay_id",
+	VIVANTE_DISPLAY_POINTER                   = "SDL.window.vivante.display",
+	VIVANTE_WINDOW_POINTER                    = "SDL.window.vivante.window",
+	VIVANTE_SURFACE_POINTER                   = "SDL.window.vivante.surface",
+	WIN32_HWND_POINTER                        = "SDL.window.win32.hwnd",
+	WIN32_HDC_POINTER                         = "SDL.window.win32.hdc",
+	WIN32_INSTANCE_POINTER                    = "SDL.window.win32.instance",
+	WAYLAND_DISPLAY_POINTER                   = "SDL.window.wayland.display",
+	WAYLAND_SURFACE_POINTER                   = "SDL.window.wayland.surface",
+	WAYLAND_VIEWPORT_POINTER                  = "SDL.window.wayland.viewport",
+	WAYLAND_EGL_WINDOW_POINTER                = "SDL.window.wayland.egl_window",
+	WAYLAND_XDG_SURFACE_POINTER               = "SDL.window.wayland.xdg_surface",
+	WAYLAND_XDG_TOPLEVEL_POINTER              = "SDL.window.wayland.xdg_toplevel",
+	WAYLAND_XDG_TOPLEVEL_EXPORT_HANDLE_STRING = "SDL.window.wayland.xdg_toplevel_export_handle",
+	WAYLAND_XDG_POPUP_POINTER                 = "SDL.window.wayland.xdg_popup",
+	WAYLAND_XDG_POSITIONER_POINTER            = "SDL.window.wayland.xdg_positioner",
+	X11_DISPLAY_POINTER                       = "SDL.window.x11.display",
+	X11_SCREEN_NUMBER                         = "SDL.window.x11.screen",
+	X11_WINDOW_NUMBER                         = "SDL.window.x11.window",
+	EMSCRIPTEN_CANVAS_ID_STRING               = "SDL.window.emscripten.canvas_id",
+	EMSCRIPTEN_KEYBOARD_ELEMENT_STRING        = "SDL.window.emscripten.keyboard_element",
+}
+
+
+// Macros
+macro windowpos_undefined_display(x) => WINDOWPOS_UNDEFINED_MASK | x;
+macro windowpos_undefined()          => windowpos_undefined_display(0);
+macro windowpos_isundefined(x)       => (x & 0xFFFF0000) == WINDOWPOS_UNDEFINED_MASK;
+macro windowpos_centered_display(x)  => WINDOWPOS_CENTERED_MASK|x;
+macro windowpos_centered()           => windowpos_centered_display(0);
+macro windowpos_iscentered(x)        => (x & 0xFFFF0000) == WINDOWPOS_CENTERED_MASK;
+
+
+// Functions
+extern fn Window* create_popup_window(Window* parent, int offset_x, int offset_y, int w, int h, WindowFlags flags) @cname("SDL_CreatePopupWindow");
+extern fn Window* create_window(char* title, int w, int h, WindowFlags flags) @cname("SDL_CreateWindow");
+extern fn Window* create_window_with_properties(PropertiesID props) @cname("SDL_CreateWindowWithProperties");
+extern fn void destroy_window(Window* window) @cname("SDL_DestroyWindow");
+extern fn bool destroy_window_surface(Window* window) @cname("SDL_DestroyWindowSurface");
+extern fn bool disable_screen_saver() @cname("SDL_DisableScreenSaver");
+extern fn bool enable_screen_saver() @cname("SDL_EnableScreenSaver");
+extern fn bool flash_window(Window* window, FlashOperation operation) @cname("SDL_FlashWindow");
+extern fn bool get_closest_fullscreen_display_mode(DisplayID displayID, int w, int h, float refresh_rate, bool include_high_density_modes, DisplayMode* closest) @cname("SDL_GetClosestFullscreenDisplayMode");
+extern fn DisplayMode* get_current_display_mode(DisplayID displayID) @cname("SDL_GetCurrentDisplayMode");
+extern fn DisplayOrientation get_current_display_orientation(DisplayID displayID) @cname("SDL_GetCurrentDisplayOrientation");
+extern fn char* get_current_video_driver() @cname("SDL_GetCurrentVideoDriver");
+extern fn DisplayMode* get_desktop_display_mode(DisplayID displayID) @cname("SDL_GetDesktopDisplayMode");
+extern fn bool get_display_bounds(DisplayID displayID, Rect* rect) @cname("SDL_GetDisplayBounds");
+extern fn float get_display_content_scale(DisplayID displayID) @cname("SDL_GetDisplayContentScale");
+extern fn DisplayID get_display_for_point(Point* point) @cname("SDL_GetDisplayForPoint");
+extern fn DisplayID get_display_for_rect(Rect* rect) @cname("SDL_GetDisplayForRect");
+extern fn DisplayID get_display_for_window(Window* window) @cname("SDL_GetDisplayForWindow");
+extern fn char* get_display_name(DisplayID displayID) @cname("SDL_GetDisplayName");
+extern fn PropertiesID get_display_properties(DisplayID displayID) @cname("SDL_GetDisplayProperties");
+extern fn DisplayID* get_displays(int* count) @cname("SDL_GetDisplays");
+extern fn bool get_display_usable_bounds(DisplayID displayID, Rect* rect) @cname("SDL_GetDisplayUsableBounds");
+extern fn DisplayMode** get_fullscreen_display_modes(DisplayID displayID, int* count) @cname("SDL_GetFullscreenDisplayModes");
+extern fn Window* get_grabbed_window() @cname("SDL_GetGrabbedWindow");
+extern fn DisplayOrientation get_natural_display_orientation(DisplayID displayID) @cname("SDL_GetNaturalDisplayOrientation");
+extern fn int get_num_video_drivers() @cname("SDL_GetNumVideoDrivers");
+extern fn DisplayID get_primary_display() @cname("SDL_GetPrimaryDisplay");
+extern fn SystemTheme get_system_theme() @cname("SDL_GetSystemTheme");
+extern fn char* get_video_driver(int index) @cname("SDL_GetVideoDriver");
+extern fn bool get_window_aspect_ratio(Window* window, float* min_aspect, float* max_aspect) @cname("SDL_GetWindowAspectRatio");
+extern fn bool get_window_borders_size(Window* window, int* top, int* left, int* bottom, int* right) @cname("SDL_GetWindowBordersSize");
+extern fn float get_window_display_scale(Window* window) @cname("SDL_GetWindowDisplayScale");
+extern fn WindowFlags get_window_flags(Window* window) @cname("SDL_GetWindowFlags");
+extern fn Window* get_window_from_id(WindowID id) @cname("SDL_GetWindowFromID");
+extern fn DisplayMode* get_window_fullscreen_mode(Window* window) @cname("SDL_GetWindowFullscreenMode");
+extern fn void* get_window_icc_profile(Window* window, usz* size) @cname("SDL_GetWindowICCProfile");
+extern fn WindowID get_window_id(Window* window) @cname("SDL_GetWindowID");
+extern fn bool get_window_keyboard_grab(Window* window) @cname("SDL_GetWindowKeyboardGrab");
+extern fn bool get_window_maximum_size(Window* window, int* w, int* h) @cname("SDL_GetWindowMaximumSize");
+extern fn bool get_window_minimum_size(Window* window, int* w, int* h) @cname("SDL_GetWindowMinimumSize");
+extern fn bool get_window_mouse_grab(Window* window) @cname("SDL_GetWindowMouseGrab");
+extern fn Rect* get_window_mouse_rect(Window* window) @cname("SDL_GetWindowMouseRect");
+extern fn float get_window_opacity(Window* window) @cname("SDL_GetWindowOpacity");
+extern fn Window* get_window_parent(Window* window) @cname("SDL_GetWindowParent");
+extern fn float get_window_pixel_density(Window* window) @cname("SDL_GetWindowPixelDensity");
+extern fn PixelFormat get_window_pixel_format(Window* window) @cname("SDL_GetWindowPixelFormat");
+extern fn bool get_window_position(Window* window, int* x, int* y) @cname("SDL_GetWindowPosition");
+extern fn ProgressState get_window_progress_state(Window* window) @cname("SDL_GetWindowProgressState");
+extern fn float get_window_progress_value(Window* window) @cname("SDL_GetWindowProgressValue");
+extern fn PropertiesID get_window_properties(Window* window) @cname("SDL_GetWindowProperties");
+extern fn Window** get_windows(int* count) @cname("SDL_GetWindows");
+extern fn bool get_window_safe_area(Window* window, Rect* rect) @cname("SDL_GetWindowSafeArea");
+extern fn bool get_window_size(Window* window, int* w, int* h) @cname("SDL_GetWindowSize");
+extern fn bool get_window_size_in_pixels(Window* window, int* w, int* h) @cname("SDL_GetWindowSizeInPixels");
+extern fn Surface* get_window_surface(Window* window) @cname("SDL_GetWindowSurface");
+extern fn bool get_window_surface_v_sync(Window* window, int* vsync) @cname("SDL_GetWindowSurfaceVSync");
+extern fn char* get_window_title(Window* window) @cname("SDL_GetWindowTitle");
+extern fn bool hide_window(Window* window) @cname("SDL_HideWindow");
+extern fn bool maximize_window(Window* window) @cname("SDL_MaximizeWindow");
+extern fn bool minimize_window(Window* window) @cname("SDL_MinimizeWindow");
+extern fn bool raise_window(Window* window) @cname("SDL_RaiseWindow");
+extern fn bool restore_window(Window* window) @cname("SDL_RestoreWindow");
+extern fn bool screen_saver_enabled() @cname("SDL_ScreenSaverEnabled");
+extern fn bool set_window_always_on_top(Window* window, bool on_top) @cname("SDL_SetWindowAlwaysOnTop");
+extern fn bool set_window_aspect_ratio(Window* window, float min_aspect, float max_aspect) @cname("SDL_SetWindowAspectRatio");
+extern fn bool set_window_bordered(Window* window, bool bordered) @cname("SDL_SetWindowBordered");
+extern fn bool set_window_fill_document(Window* window, bool fill) @cname("SDL_SetWindowFillDocument");
+extern fn bool set_window_focusable(Window* window, bool focusable) @cname("SDL_SetWindowFocusable");
+extern fn bool set_window_fullscreen(Window* window, bool fullscreen) @cname("SDL_SetWindowFullscreen");
+extern fn bool set_window_fullscreen_mode(Window* window, DisplayMode* mode) @cname("SDL_SetWindowFullscreenMode");
+extern fn bool set_window_hit_test(Window* window, HitTestCallback callback, void* callback_data) @cname("SDL_SetWindowHitTest");
+extern fn bool set_window_icon(Window* window, Surface* icon) @cname("SDL_SetWindowIcon");
+extern fn bool set_window_keyboard_grab(Window* window, bool grabbed) @cname("SDL_SetWindowKeyboardGrab");
+extern fn bool set_window_maximum_size(Window* window, int max_w, int max_h) @cname("SDL_SetWindowMaximumSize");
+extern fn bool set_window_minimum_size(Window* window, int min_w, int min_h) @cname("SDL_SetWindowMinimumSize");
+extern fn bool set_window_modal(Window* window, bool modal) @cname("SDL_SetWindowModal");
+extern fn bool set_window_mouse_grab(Window* window, bool grabbed) @cname("SDL_SetWindowMouseGrab");
+extern fn bool set_window_mouse_rect(Window* window, Rect* rect) @cname("SDL_SetWindowMouseRect");
+extern fn bool set_window_opacity(Window* window, float opacity) @cname("SDL_SetWindowOpacity");
+extern fn bool set_window_parent(Window* window, Window* parent) @cname("SDL_SetWindowParent");
+extern fn bool set_window_position(Window* window, int x, int y) @cname("SDL_SetWindowPosition");
+extern fn bool set_window_progress_state(Window* window, ProgressState state) @cname("SDL_SetWindowProgressState");
+extern fn bool set_window_progress_value(Window* window, float value) @cname("SDL_SetWindowProgressValue");
+extern fn bool set_window_resizable(Window* window, bool resizable) @cname("SDL_SetWindowResizable");
+extern fn bool set_window_shape(Window* window, Surface* shape) @cname("SDL_SetWindowShape");
+extern fn bool set_window_size(Window* window, int w, int h) @cname("SDL_SetWindowSize");
+extern fn bool set_window_surface_v_sync(Window* window, int vsync) @cname("SDL_SetWindowSurfaceVSync");
+extern fn bool set_window_title(Window* window, char* title) @cname("SDL_SetWindowTitle");
+extern fn bool show_window(Window* window) @cname("SDL_ShowWindow");
+extern fn bool show_window_system_menu(Window* window, int x, int y) @cname("SDL_ShowWindowSystemMenu");
+extern fn bool sync_window(Window* window) @cname("SDL_SyncWindow");
+extern fn bool update_window_surface(Window* window) @cname("SDL_UpdateWindowSurface");
+extern fn bool update_window_surface_rects(Window* window, Rect* rects, int numrects) @cname("SDL_UpdateWindowSurfaceRects");
+extern fn bool window_has_surface(Window* window) @cname("SDL_WindowHasSurface");
+
+
+module sdl::gl;
+
+import sdl::stdinc;
+
+// Types
+typedef Profile = uint;
+const Profile CONTEXT_PROFILE_CORE          = (Profile)0x0001;
+const Profile CONTEXT_PROFILE_COMPATIBILITY = (Profile)0x0002;
+const Profile CONTEXT_PROFILE_ES            = (Profile)0x0004;
+
+
+// Functions
+extern fn GLContext create_context(Window* window) @cname("SDL_GL_CreateContext");
+extern fn bool destroy_context(GLContext context) @cname("SDL_GL_DestroyContext");
+extern fn bool extension_supported(char* extension) @cname("SDL_GL_ExtensionSupported");
+extern fn bool get_attribute(GLAttr attr, int* value) @cname("SDL_GL_GetAttribute");
+extern fn GLContext get_current_context() @cname("SDL_GL_GetCurrentContext");
+extern fn Window* get_current_window() @cname("SDL_GL_GetCurrentWindow");
+extern fn FunctionPointer get_proc_address(char* proc) @cname("SDL_GL_GetProcAddress");
+extern fn bool get_swap_interval(int* interval) @cname("SDL_GL_GetSwapInterval");
+extern fn bool load_library(char* path) @cname("SDL_GL_LoadLibrary");
+extern fn bool make_current(Window* window, GLContext context) @cname("SDL_GL_MakeCurrent");
+extern fn void reset_attributes() @cname("SDL_GL_ResetAttributes");
+extern fn bool set_attribute(GLAttr attr, int value) @cname("SDL_GL_SetAttribute");
+extern fn bool set_swap_interval(int interval) @cname("SDL_GL_SetSwapInterval");
+extern fn bool swap_window(Window* window) @cname("SDL_GL_SwapWindow");
+extern fn void unload_library() @cname("SDL_GL_UnloadLibrary");
+
+
+module sdl::egl;
+
+import sdl::stdinc;
+
+extern fn EGLConfig get_current_config() @cname("SDL_EGL_GetCurrentConfig");
+extern fn EGLDisplay get_current_display() @cname("SDL_EGL_GetCurrentDisplay");
+extern fn FunctionPointer get_proc_address(char* proc) @cname("SDL_EGL_GetProcAddress");
+extern fn Surface get_window_surface(Window* window) @cname("SDL_EGL_GetWindowSurface");
+extern fn void set_attribute_callbacks(EGLAttribArrayCallback platformAttribCallback, EGLIntArrayCallback surfaceAttribCallback, EGLIntArrayCallback contextAttribCallback, void* userdata) @cname("SDL_EGL_SetAttributeCallbacks");

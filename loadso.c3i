@@ -1,0 +1,11 @@
+
+module sdl;
+
+// Types
+typedef SharedObject = void;
+
+
+// Functions
+extern fn FunctionPointer load_function(SharedObject* handle, char* name) @cname("SDL_LoadFunction");
+extern fn SharedObject* load_object(char* sofile) @cname("SDL_LoadObject");
+extern fn void unload_object(SharedObject* handle) @cname("SDL_UnloadObject");

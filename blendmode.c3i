@@ -1,0 +1,46 @@
+
+module sdl;
+
+// Enums
+enum BlendFactor
+{
+	NONE,
+	ZERO,
+	ONE,
+	SRC_COLOR,
+	ONE_MINUS_SRC_COLOR,
+	SRC_ALPHA,
+	ONE_MINUS_SRC_ALPHA,
+	DST_COLOR,
+	ONE_MINUS_DST_COLOR,
+	DST_ALPHA,
+	ONE_MINUS_DST_ALPHA,
+}
+
+constdef BlendMode : uint
+{
+	NONE                = 0x00000000u,
+	BLEND               = 0x00000001u,
+	BLEND_PREMULTIPLIED = 0x00000010u,
+	ADD                 = 0x00000002u,
+	ADD_PREMULTIPLIED   = 0x00000020u,
+	MOD                 = 0x00000004u,
+	MUL                 = 0x00000008u,
+	INVALID             = 0x7FFFFFFFu,
+}
+
+
+enum BlendOperation
+{
+	NONE,
+	ADD,
+	SUBTRACT,
+	REV_SUBTRACT,
+	MINIMUM,
+	MAXIMUM,
+}
+
+
+// Functions
+extern fn BlendMode compose_custom_blend_mode(BlendFactor srcColorFactor, BlendFactor dstColorFactor, BlendOperation colorOperation, BlendFactor srcAlphaFactor, BlendFactor dstAlphaFactor, BlendOperation alphaOperation) @cname("SDL_ComposeCustomBlendMode");
+

@@ -1,0 +1,39 @@
+
+module sdl;
+
+// Structs
+struct DateTime
+{
+	int year, month, day;
+	int hour, minute;
+	int second, nanosecond;
+	int day_of_week;
+	int utc_offset;
+}
+
+
+// Enums
+enum DateFormat
+{
+	YYYYMMDD, /**< Year/Month/Day */
+	DDMMYYYY, /**< Day/Month/Year */
+	MMDDYYYY, /**< Month/Day/Year */
+}
+
+enum TimeFormat
+{
+	HR24, /**< 24 hour time */
+	HR12, /**< 12 hour time */
+}
+
+
+// Functions
+extern fn bool date_time_to_time(DateTime* dt, Time* ticks) @cname("SDL_DateTimeToTime");
+extern fn bool get_current_time(Time* ticks) @cname("SDL_GetCurrentTime");
+extern fn bool get_date_time_locale_preferences(DateFormat* dateFormat, TimeFormat* timeFormat) @cname("SDL_GetDateTimeLocalePreferences");
+extern fn int get_day_of_week(int year, int month, int day) @cname("SDL_GetDayOfWeek");
+extern fn int get_day_of_year(int year, int month, int day) @cname("SDL_GetDayOfYear");
+extern fn int get_days_in_month(int year, int month) @cname("SDL_GetDaysInMonth");
+extern fn Time time_from_windows(uint dwLowDateTime, uint dwHighDateTime) @cname("SDL_TimeFromWindows");
+extern fn bool time_to_date_time(Time ticks, DateTime* dt, bool localTime) @cname("SDL_TimeToDateTime");
+extern fn void time_to_windows(Time ticks, uint* dwLowDateTime, uint* dwHighDateTime) @cname("SDL_TimeToWindows");

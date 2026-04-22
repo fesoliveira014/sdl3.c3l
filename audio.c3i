@@ -1,0 +1,129 @@
+
+module sdl;
+
+// Constants
+const AUDIO_MASK_BITSIZE    = 0xFFu;
+const AUDIO_MASK_FLOAT      = 1u<<8;
+const AUDIO_MASK_BIG_ENDIAN = 1u<<12;
+const AUDIO_MASK_SIGNED     = 1u<<15;
+
+const AUDIO_DEVICE_DEFAULT_PLAYBACK  = (AudioDeviceID)0xFFFFFFFFu;
+const AUDIO_DEVICE_DEFAULT_RECORDING = (AudioDeviceID)0xFFFFFFFEu;
+
+
+// Types
+typedef AudioDeviceID = uint;
+alias AudioPostmixCallback = fn void(void* userdata, AudioSpec* spec, float* buffer, int buflen);
+typedef AudioStream = void;
+alias AudioStreamCallback = fn void(void* userdata, AudioStream* stream, int additional_amount, int total_amount);
+alias AudioStreamDataCompleteCallback = fn void(void* userdata, void* buf, int buflen);
+
+
+// Structs
+struct AudioSpec
+{
+	AudioFormat format; /**< Audio data format */
+	int channels;       /**< Number of channels: 1 mono, 2 stereo, etc */
+	int freq;           /**< sample rate: sample frames per second */
+}
+
+
+// Enums
+constdef AudioFormat : CInt
+{
+	UNKNOWN   = 0x0000u,  /**< Unspecified audio format */
+	U8        = 0x0008u,  /**< Unsigned 8-bit samples */
+	    /* SDL_DEFINE_AUDIO_FORMAT(0, 0, 0, 8), */
+	S8        = 0x8008u,  /**< Signed 8-bit samples */
+	    /* SDL_DEFINE_AUDIO_FORMAT(1, 0, 0, 8), */
+	S16LE     = 0x8010u,  /**< Signed 16-bit samples */
+	    /* SDL_DEFINE_AUDIO_FORMAT(1, 0, 0, 16), */
+	S16BE     = 0x9010u,  /**< As above, but big-endian byte order */
+	    /* SDL_DEFINE_AUDIO_FORMAT(1, 1, 0, 16), */
+	S32LE     = 0x8020u,  /**< 32-bit integer samples */
+	    /* SDL_DEFINE_AUDIO_FORMAT(1, 0, 0, 32), */
+	S32BE     = 0x9020u,  /**< As above, but big-endian byte order */
+	    /* SDL_DEFINE_AUDIO_FORMAT(1, 1, 0, 32), */
+	F32LE     = 0x8120u,  /**< 32-bit floating point samples */
+	    /* SDL_DEFINE_AUDIO_FORMAT(1, 0, 1, 32), */
+	F32BE     = 0x9120u,  /**< As above, but big-endian byte order */
+	    /* SDL_DEFINE_AUDIO_FORMAT(1, 1, 1, 32), */
+
+	S16 = env::BIG_ENDIAN ??? S16BE : S16LE,
+	S32 = env::BIG_ENDIAN ??? S32BE : S32LE,
+	F32 = env::BIG_ENDIAN ??? F32BE : F32LE,
+}
+
+
+// Macros
+macro define_audio_format(signed, bigendian, flt, size) => ((ushort)signed << 15) | ((ushort)bigendian << 12) | ((ushort)flt << 8) | (size & SDL_AUDIO_MASK_BITSIZE);
+macro audio_bitsize(x) => x & SDL_AUDIO_MASK_BITSIZE;
+macro audio_bytesize(x) => audio_bitsize(x) / 8;
+macro audio_isfloat(x) => x & SDL_AUDIO_MASK_FLOAT;
+macro audio_isbigendian(x) => x & SDL_AUDIO_MASK_BIG_ENDIAN;
+macro audio_islittleendian(x) => !audio_isbigendian(x);
+macro audio_issigned(x) => x & SDL_AUDIO_MASK_SIGNED;
+macro audio_isint(x) => !audio_isfloat(x);
+macro audio_isunsigned(x) => !audio_issigned(x);
+macro audio_framesize(AudioSpec x) => (int)audio_bytesize(x.format) * x.channels;
+
+
+// Functions
+extern fn bool audio_device_paused(AudioDeviceID devid) @cname("SDL_AudioDevicePaused");
+extern fn bool audio_stream_device_paused(AudioStream* stream) @cname("SDL_AudioStreamDevicePaused");
+extern fn bool bind_audio_stream(AudioDeviceID devid, AudioStream* stream) @cname("SDL_BindAudioStream");
+extern fn bool bind_audio_streams(AudioDeviceID devid, AudioStream** streams, int num_streams) @cname("SDL_BindAudioStreams");
+extern fn bool clear_audio_stream(AudioStream* stream) @cname("SDL_ClearAudioStream");
+extern fn void close_audio_device(AudioDeviceID devid) @cname("SDL_CloseAudioDevice");
+extern fn bool convert_audio_samples(AudioSpec* src_spec, char* src_data, int src_len, AudioSpec* dst_spec, char** dst_data, int* dst_len) @cname("SDL_ConvertAudioSamples");
+extern fn AudioStream* create_audio_stream(AudioSpec* src_spec, AudioSpec* dst_spec) @cname("SDL_CreateAudioStream");
+extern fn void destroy_audio_stream(AudioStream* stream) @cname("SDL_DestroyAudioStream");
+extern fn bool flush_audio_stream(AudioStream* stream) @cname("SDL_FlushAudioStream");
+extern fn int* get_audio_device_channel_map(AudioDeviceID devid, int* count) @cname("SDL_GetAudioDeviceChannelMap");
+extern fn bool get_audio_device_format(AudioDeviceID devid, AudioSpec* spec, int* sample_frames) @cname("SDL_GetAudioDeviceFormat");
+extern fn float get_audio_device_gain(AudioDeviceID devid) @cname("SDL_GetAudioDeviceGain");
+extern fn char* get_audio_device_name(AudioDeviceID devid) @cname("SDL_GetAudioDeviceName");
+extern fn char* get_audio_driver(int index) @cname("SDL_GetAudioDriver");
+extern fn char* get_audio_format_name(AudioFormat format) @cname("SDL_GetAudioFormatName");
+extern fn AudioDeviceID* get_audio_playback_devices(int* count) @cname("SDL_GetAudioPlaybackDevices");
+extern fn AudioDeviceID* get_audio_recording_devices(int* count) @cname("SDL_GetAudioRecordingDevices");
+extern fn int get_audio_stream_available(AudioStream* stream) @cname("SDL_GetAudioStreamAvailable");
+extern fn int get_audio_stream_data(AudioStream* stream, void* buf, int len) @cname("SDL_GetAudioStreamData");
+extern fn AudioDeviceID get_audio_stream_device(AudioStream* stream) @cname("SDL_GetAudioStreamDevice");
+extern fn bool get_audio_stream_format(AudioStream* stream, AudioSpec* src_spec, AudioSpec* dst_spec) @cname("SDL_GetAudioStreamFormat");
+extern fn float get_audio_stream_frequency_ratio(AudioStream* stream) @cname("SDL_GetAudioStreamFrequencyRatio");
+extern fn float get_audio_stream_gain(AudioStream* stream) @cname("SDL_GetAudioStreamGain");
+extern fn int* get_audio_stream_input_channel_map(AudioStream* stream, int* count) @cname("SDL_GetAudioStreamInputChannelMap");
+extern fn int* get_audio_stream_output_channel_map(AudioStream* stream, int* count) @cname("SDL_GetAudioStreamOutputChannelMap");
+extern fn PropertiesID get_audio_stream_properties(AudioStream* stream) @cname("SDL_GetAudioStreamProperties");
+extern fn int get_audio_stream_queued(AudioStream* stream) @cname("SDL_GetAudioStreamQueued");
+extern fn char* get_current_audio_driver() @cname("SDL_GetCurrentAudioDriver");
+extern fn int get_num_audio_drivers() @cname("SDL_GetNumAudioDrivers");
+extern fn int get_silence_value_for_format(AudioFormat format) @cname("SDL_GetSilenceValueForFormat");
+extern fn bool is_audio_device_physical(AudioDeviceID devid) @cname("SDL_IsAudioDevicePhysical");
+extern fn bool is_audio_device_playback(AudioDeviceID devid) @cname("SDL_IsAudioDevicePlayback");
+extern fn bool load_wav(char* path, AudioSpec* spec, char** audio_buf, uint* audio_len) @cname("SDL_LoadWAV");
+extern fn bool load_wav_io(IOStream* src, bool closeio, AudioSpec* spec, char** audio_buf, uint* audio_len) @cname("SDL_LoadWAV_IO");
+extern fn bool lock_audio_stream(AudioStream* stream) @cname("SDL_LockAudioStream");
+extern fn bool mix_audio(char* dst, char* src, AudioFormat format, uint len, float volume) @cname("SDL_MixAudio");
+extern fn AudioDeviceID open_audio_device(AudioDeviceID devid, AudioSpec* spec) @cname("SDL_OpenAudioDevice");
+extern fn AudioStream* open_audio_device_stream(AudioDeviceID devid, AudioSpec* spec, AudioStreamCallback callback, void* userdata) @cname("SDL_OpenAudioDeviceStream");
+extern fn bool pause_audio_device(AudioDeviceID devid) @cname("SDL_PauseAudioDevice");
+extern fn bool pause_audio_stream_device(AudioStream* stream) @cname("SDL_PauseAudioStreamDevice");
+extern fn bool put_audio_stream_data(AudioStream* stream, void* buf, int len) @cname("SDL_PutAudioStreamData");
+extern fn bool put_audio_stream_data_no_copy(AudioStream* stream, void* buf, int len, AudioStreamDataCompleteCallback callback, void* userdata) @cname("SDL_PutAudioStreamDataNoCopy");
+extern fn bool put_audio_stream_planar_data(AudioStream* stream, void** channel_buffers, int num_channels, int num_samples) @cname("SDL_PutAudioStreamPlanarData");
+extern fn bool resume_audio_device(AudioDeviceID devid) @cname("SDL_ResumeAudioDevice");
+extern fn bool resume_audio_stream_device(AudioStream* stream) @cname("SDL_ResumeAudioStreamDevice");
+extern fn bool set_audio_device_gain(AudioDeviceID devid, float gain) @cname("SDL_SetAudioDeviceGain");
+extern fn bool set_audio_postmix_callback(AudioDeviceID devid, AudioPostmixCallback callback, void* userdata) @cname("SDL_SetAudioPostmixCallback");
+extern fn bool set_audio_stream_format(AudioStream* stream, AudioSpec* src_spec, AudioSpec* dst_spec) @cname("SDL_SetAudioStreamFormat");
+extern fn bool set_audio_stream_frequency_ratio(AudioStream* stream, float ratio) @cname("SDL_SetAudioStreamFrequencyRatio");
+extern fn bool set_audio_stream_gain(AudioStream* stream, float gain) @cname("SDL_SetAudioStreamGain");
+extern fn bool set_audio_stream_get_callback(AudioStream* stream, AudioStreamCallback callback, void* userdata) @cname("SDL_SetAudioStreamGetCallback");
+extern fn bool set_audio_stream_input_channel_map(AudioStream* stream, int* chmap, int count) @cname("SDL_SetAudioStreamInputChannelMap");
+extern fn bool set_audio_stream_output_channel_map(AudioStream* stream, int* chmap, int count) @cname("SDL_SetAudioStreamOutputChannelMap");
+extern fn bool set_audio_stream_put_callback(AudioStream* stream, AudioStreamCallback callback, void* userdata) @cname("SDL_SetAudioStreamPutCallback");
+extern fn void unbind_audio_stream(AudioStream* stream) @cname("SDL_UnbindAudioStream");
+extern fn void unbind_audio_streams(AudioStream** streams, int num_streams) @cname("SDL_UnbindAudioStreams");
+extern fn bool unlock_audio_stream(AudioStream* stream) @cname("SDL_UnlockAudioStream");

@@ -1,0 +1,119 @@
+
+module sdl;
+
+// Bitstructs
+bitstruct SurfaceFlags : uint
+{
+	bool preallocated;
+	bool lock_needed;
+	bool locked;
+	bool simd_aligned;
+}
+
+bitstruct FlipMode : uint
+{
+	bool horizontal;
+	bool vertical;
+}
+
+// Structs
+struct Surface
+{
+	SurfaceFlags flags;     /**< The flags of the surface, read-only */
+	PixelFormat format;     /**< The format of the surface, read-only */
+	int w;                  /**< The width of the surface, read-only. */
+	int h;                  /**< The height of the surface, read-only. */
+	int pitch;              /**< The distance in bytes between rows of pixels, read-only */
+	void* pixels;           /**< A pointer to the pixels of the surface, the pixels are writeable if non-NULL */
+
+	int refcount;           /**< Application reference count, used when freeing surface */
+
+	void* reserved;         /**< Reserved for internal use */
+}
+
+// Enums
+constdef ScaleMode : CInt
+{
+	INVALID = -1,
+	NEAREST,  /**< nearest pixel sampling */
+	LINEAR,   /**< linear filtering */
+	PIXELART  /**< nearest pixel sampling with improved scaling for pixel art, available since SDL 3.4.0 */
+}
+
+constdef SurfaceProperties : ZString
+{
+	SDR_WHITE_POINT_FLOAT   = "SDL.surface.SDR_white_point",
+	HDR_HEADROOM_FLOAT      = "SDL.surface.HDR_headroom",
+	TONEMAP_OPERATOR_STRING = "SDL.surface.tonemap",
+	HOTSPOT_X_NUMBER        = "SDL.surface.hotspot.x",
+	HOTSPOT_Y_NUMBER        = "SDL.surface.hotspot.y",
+	ROTATION_FLOAT          = "SDL.surface.rotation",
+}
+
+
+// Functions
+extern fn bool add_surface_alternate_image(Surface* surface, Surface* image) @cname("SDL_AddSurfaceAlternateImage");
+extern fn bool blit_surface(Surface* src, Rect* srcrect, Surface* dst, Rect* dstrect) @cname("SDL_BlitSurface");
+extern fn bool blit_surface9_grid(Surface* src, Rect* srcrect, int left_width, int right_width, int top_height, int bottom_height, float scale, ScaleMode scaleMode, Surface* dst, Rect* dstrect) @cname("SDL_BlitSurface9Grid");
+extern fn bool blit_surface_scaled(Surface* src, Rect* srcrect, Surface* dst, Rect* dstrect, ScaleMode scaleMode) @cname("SDL_BlitSurfaceScaled");
+extern fn bool blit_surface_tiled(Surface* src, Rect* srcrect, Surface* dst, Rect* dstrect) @cname("SDL_BlitSurfaceTiled");
+extern fn bool blit_surface_tiled_with_scale(Surface* src, Rect* srcrect, float scale, ScaleMode scaleMode, Surface* dst, Rect* dstrect) @cname("SDL_BlitSurfaceTiledWithScale");
+extern fn bool blit_surface_unchecked(Surface* src, Rect* srcrect, Surface* dst, Rect* dstrect) @cname("SDL_BlitSurfaceUnchecked");
+extern fn bool blit_surface_unchecked_scaled(Surface* src, Rect* srcrect, Surface* dst, Rect* dstrect, ScaleMode scaleMode) @cname("SDL_BlitSurfaceUncheckedScaled");
+extern fn bool clear_surface(Surface* surface, float r, float g, float b, float a) @cname("SDL_ClearSurface");
+extern fn bool convert_pixels(int width, int height, PixelFormat src_format, void* src, int src_pitch, PixelFormat dst_format, void* dst, int dst_pitch) @cname("SDL_ConvertPixels");
+extern fn bool convert_pixels_and_colorspace(int width, int height, PixelFormat src_format, Colorspace src_colorspace, PropertiesID src_properties, void* src, int src_pitch, PixelFormat dst_format, Colorspace dst_colorspace, PropertiesID dst_properties, void* dst, int dst_pitch) @cname("SDL_ConvertPixelsAndColorspace");
+extern fn Surface* convert_surface(Surface* surface, PixelFormat format) @cname("SDL_ConvertSurface");
+extern fn Surface* convert_surface_and_colorspace(Surface* surface, PixelFormat format, Palette* palette, Colorspace colorspace, PropertiesID props) @cname("SDL_ConvertSurfaceAndColorspace");
+extern fn Surface* create_surface(int width, int height, PixelFormat format) @cname("SDL_CreateSurface");
+extern fn Surface* create_surface_from(int width, int height, PixelFormat format, void* pixels, int pitch) @cname("SDL_CreateSurfaceFrom");
+extern fn Palette* create_surface_palette(Surface* surface) @cname("SDL_CreateSurfacePalette");
+extern fn void destroy_surface(Surface* surface) @cname("SDL_DestroySurface");
+extern fn Surface* duplicate_surface(Surface* surface) @cname("SDL_DuplicateSurface");
+extern fn bool fill_surface_rect(Surface* dst, Rect* rect, uint color) @cname("SDL_FillSurfaceRect");
+extern fn bool fill_surface_rects(Surface* dst, Rect* rects, int count, uint color) @cname("SDL_FillSurfaceRects");
+extern fn bool flip_surface(Surface* surface, FlipMode flip) @cname("SDL_FlipSurface");
+extern fn bool get_surface_alpha_mod(Surface* surface, char* alpha) @cname("SDL_GetSurfaceAlphaMod");
+extern fn bool get_surface_blend_mode(Surface* surface, BlendMode* blendMode) @cname("SDL_GetSurfaceBlendMode");
+extern fn bool get_surface_clip_rect(Surface* surface, Rect* rect) @cname("SDL_GetSurfaceClipRect");
+extern fn bool get_surface_color_key(Surface* surface, uint* key) @cname("SDL_GetSurfaceColorKey");
+extern fn bool get_surface_color_mod(Surface* surface, char* r, char* g, char* b) @cname("SDL_GetSurfaceColorMod");
+extern fn Colorspace get_surface_colorspace(Surface* surface) @cname("SDL_GetSurfaceColorspace");
+extern fn Surface** get_surface_images(Surface* surface, int* count) @cname("SDL_GetSurfaceImages");
+extern fn Palette* get_surface_palette(Surface* surface) @cname("SDL_GetSurfacePalette");
+extern fn PropertiesID get_surface_properties(Surface* surface) @cname("SDL_GetSurfaceProperties");
+extern fn Surface* load_bmp(char* file) @cname("SDL_LoadBMP");
+extern fn Surface* load_bmp_io(IOStream* src, bool closeio) @cname("SDL_LoadBMP_IO");
+extern fn Surface* load_png(char* file) @cname("SDL_LoadPNG");
+extern fn Surface* load_png_io(IOStream* src, bool closeio) @cname("SDL_LoadPNG_IO");
+extern fn Surface* load_surface(char* file) @cname("SDL_LoadSurface");
+extern fn Surface* load_surface_io(IOStream* src, bool closeio) @cname("SDL_LoadSurface_IO");
+extern fn bool lock_surface(Surface* surface) @cname("SDL_LockSurface");
+extern fn uint map_surface_rgb(Surface* surface, char r, char g, char b) @cname("SDL_MapSurfaceRGB");
+extern fn uint map_surface_rgba(Surface* surface, char r, char g, char b, char a) @cname("SDL_MapSurfaceRGBA");
+extern fn bool premultiply_alpha(int width, int height, PixelFormat src_format, void* src, int src_pitch, PixelFormat dst_format, void* dst, int dst_pitch, bool linear) @cname("SDL_PremultiplyAlpha");
+extern fn bool premultiply_surface_alpha(Surface* surface, bool linear) @cname("SDL_PremultiplySurfaceAlpha");
+extern fn bool read_surface_pixel(Surface* surface, int x, int y, char* r, char* g, char* b, char* a) @cname("SDL_ReadSurfacePixel");
+extern fn bool read_surface_pixel_float(Surface* surface, int x, int y, float* r, float* g, float* b, float* a) @cname("SDL_ReadSurfacePixelFloat");
+extern fn void remove_surface_alternate_images(Surface* surface) @cname("SDL_RemoveSurfaceAlternateImages");
+extern fn Surface* rotate_surface(Surface* surface, float angle) @cname("SDL_RotateSurface");
+extern fn bool save_bmp(Surface* surface, char* file) @cname("SDL_SaveBMP");
+extern fn bool save_bmp_io(Surface* surface, IOStream* dst, bool closeio) @cname("SDL_SaveBMP_IO");
+extern fn bool save_png(Surface* surface, char* file) @cname("SDL_SavePNG");
+extern fn bool save_png_io(Surface* surface, IOStream* dst, bool closeio) @cname("SDL_SavePNG_IO");
+extern fn Surface* scale_surface(Surface* surface, int width, int height, ScaleMode scaleMode) @cname("SDL_ScaleSurface");
+extern fn bool set_surface_alpha_mod(Surface* surface, char alpha) @cname("SDL_SetSurfaceAlphaMod");
+extern fn bool set_surface_blend_mode(Surface* surface, BlendMode blendMode) @cname("SDL_SetSurfaceBlendMode");
+extern fn bool set_surface_clip_rect(Surface* surface, Rect* rect) @cname("SDL_SetSurfaceClipRect");
+extern fn bool set_surface_color_key(Surface* surface, bool enabled, uint key) @cname("SDL_SetSurfaceColorKey");
+extern fn bool set_surface_color_mod(Surface* surface, char r, char g, char b) @cname("SDL_SetSurfaceColorMod");
+extern fn bool set_surface_colorspace(Surface* surface, Colorspace colorspace) @cname("SDL_SetSurfaceColorspace");
+extern fn bool set_surface_palette(Surface* surface, Palette* palette) @cname("SDL_SetSurfacePalette");
+extern fn bool set_surface_rle(Surface* surface, bool enabled) @cname("SDL_SetSurfaceRLE");
+extern fn bool stretch_surface(Surface* src, Rect* srcrect, Surface* dst, Rect* dstrect, ScaleMode scaleMode) @cname("SDL_StretchSurface");
+extern fn bool surface_has_alternate_images(Surface* surface) @cname("SDL_SurfaceHasAlternateImages");
+extern fn bool surface_has_color_key(Surface* surface) @cname("SDL_SurfaceHasColorKey");
+extern fn bool surface_has_rle(Surface* surface) @cname("SDL_SurfaceHasRLE");
+extern fn void unlock_surface(Surface* surface) @cname("SDL_UnlockSurface");
+extern fn bool write_surface_pixel(Surface* surface, int x, int y, char r, char g, char b, char a) @cname("SDL_WriteSurfacePixel");
+extern fn bool write_surface_pixel_float(Surface* surface, int x, int y, float r, float g, float b, float a) @cname("SDL_WriteSurfacePixelFloat");

@@ -1,0 +1,68 @@
+
+module sdl;
+
+// Types
+alias LogOutputFunction = fn void(void* userdata, LogCategory category, LogPriority priority, ZString message);
+
+
+// Enums
+enum LogCategory
+{
+	APPLICATION,
+	ERROR,
+	ASSERT,
+	SYSTEM,
+	AUDIO,
+	VIDEO,
+	RENDER,
+	INPUT,
+	TEST,
+	GPU,
+
+	/* Reserved for future SDL library use */
+	RESERVED2,
+	RESERVED3,
+	RESERVED4,
+	RESERVED5,
+	RESERVED6,
+	RESERVED7,
+	RESERVED8,
+	RESERVED9,
+	RESERVED10,
+
+	CUSTOM,
+}
+
+enum LogPriority
+{
+	INVALID,
+	TRACE,
+	VERBOSE,
+	DEBUG,
+	INFO,
+	WARN,
+	ERROR,
+	CRITICAL,
+	COUNT,
+}
+
+
+// Functions
+extern fn LogOutputFunction get_default_log_output_function() @cname("SDL_GetDefaultLogOutputFunction");
+extern fn void get_log_output_function(LogOutputFunction* callback, void** userdata) @cname("SDL_GetLogOutputFunction");
+extern fn LogPriority get_log_priority(int category) @cname("SDL_GetLogPriority");
+extern fn void log(char* fmt, ...) @cname("SDL_Log");
+extern fn void log_critical(int category, char* fmt, ...) @cname("SDL_LogCritical");
+extern fn void log_debug(int category, char* fmt, ...) @cname("SDL_LogDebug");
+extern fn void log_error(int category, char* fmt, ...) @cname("SDL_LogError");
+extern fn void log_info(int category, char* fmt, ...) @cname("SDL_LogInfo");
+extern fn void log_message(int category, LogPriority priority, char* fmt, ...) @cname("SDL_LogMessage");
+extern fn void log_message_v(int category, LogPriority priority, char* fmt, CVaList ap) @cname("SDL_LogMessageV");
+extern fn void log_trace(int category, char* fmt, ...) @cname("SDL_LogTrace");
+extern fn void log_verbose(int category, char* fmt, ...) @cname("SDL_LogVerbose");
+extern fn void log_warn(int category, char* fmt, ...) @cname("SDL_LogWarn");
+extern fn void reset_log_priorities() @cname("SDL_ResetLogPriorities");
+extern fn void set_log_output_function(LogOutputFunction callback, void* userdata) @cname("SDL_SetLogOutputFunction");
+extern fn void set_log_priorities(LogPriority priority) @cname("SDL_SetLogPriorities");
+extern fn void set_log_priority(int category, LogPriority priority) @cname("SDL_SetLogPriority");
+extern fn bool set_log_priority_prefix(LogPriority priority, char* prefix) @cname("SDL_SetLogPriorityPrefix");

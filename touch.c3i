@@ -1,0 +1,38 @@
+
+module sdl;
+
+// Constants
+const TOUCH_MOUSEID = (MouseID)-1;
+const MOUSE_TOUCHID = (TouchID)-1;
+
+
+// Type
+typedef FingerID = ulong;
+typedef TouchID = ulong;
+
+
+// Struct
+struct Finger
+{
+	FingerID id;    /**< the finger ID */
+	float x;        /**< the x-axis location of the touch event, normalized (0...1) */
+	float y;        /**< the y-axis location of the touch event, normalized (0...1) */
+	float pressure; /**< the quantity of pressure applied, normalized (0...1) */
+}
+
+
+// Enums
+constdef TouchDeviceType : CInt
+{
+	INVALID = -1,
+	DIRECT,             /**< touch screen with window-relative coordinates */
+	INDIRECT_ABSOLUTE,  /**< trackpad with absolute device coordinates */
+	INDIRECT_RELATIVE,  /**< trackpad with screen cursor-relative coordinates */
+}
+
+
+// Functions
+extern fn char* get_touch_device_name(TouchID touchID) @cname("SDL_GetTouchDeviceName");
+extern fn TouchID* get_touch_devices(int* count) @cname("SDL_GetTouchDevices");
+extern fn TouchDeviceType get_touch_device_type(TouchID touchID) @cname("SDL_GetTouchDeviceType");
+extern fn Finger** get_touch_fingers(TouchID touchID, int* count) @cname("SDL_GetTouchFingers");

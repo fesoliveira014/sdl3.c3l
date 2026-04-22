@@ -1,0 +1,208 @@
+
+module sdl;
+
+// Types
+typedef Gamepad = void;
+
+
+// Structs
+struct GamepadBinding
+{
+	GamepadBindingType input_type;
+	union input
+	{
+		int button;
+		struct axis
+		{
+			int axis;
+			int axis_min;
+			int axis_max;
+		}
+		struct hat
+		{
+			int hat;
+			int hat_mask;
+		}
+	}
+
+	GamepadBindingType output_type;
+	union output
+	{
+		GamepadButton button;
+		struct axis
+		{
+			GamepadAxis axis;
+			int axis_min;
+			int axis_max;
+		}
+	}
+}
+
+
+// Enums
+constdef GamepadAxis : CInt
+{
+	INVALID = -1,
+	LEFTX,
+	LEFTY,
+	RIGHTX,
+	RIGHTY,
+	LEFT_TRIGGER,
+	RIGHT_TRIGGER,
+	COUNT,
+}
+
+enum GamepadBindingType
+{
+	NONE,
+	BUTTON,
+	AXIS,
+	HAT,
+}
+
+constdef GamepadButton : CInt
+{
+	INVALID = -1,
+	SOUTH,           /**< Bottom face button (e.g. Xbox A button) */
+	EAST,            /**< Right face button (e.g. Xbox B button) */
+	WEST,            /**< Left face button (e.g. Xbox X button) */
+	NORTH,           /**< Top face button (e.g. Xbox Y button) */
+	BACK,
+	GUIDE,
+	START,
+	LEFT_STICK,
+	RIGHT_STICK,
+	LEFT_SHOULDER,
+	RIGHT_SHOULDER,
+	DPAD_UP,
+	DPAD_DOWN,
+	DPAD_LEFT,
+	DPAD_RIGHT,
+	MISC1,           /**< Additional button (e.g. Xbox Series X share button, PS5 microphone button, Nintendo Switch Pro capture button, Amazon Luna microphone button, Google Stadia capture button) */
+	RIGHT_PADDLE1,   /**< Upper or primary paddle, under your right hand (e.g. Xbox Elite paddle P1, DualSense Edge RB button, Right Joy-Con SR button) */
+	LEFT_PADDLE1,    /**< Upper or primary paddle, under your left hand (e.g. Xbox Elite paddle P3, DualSense Edge LB button, Left Joy-Con SL button) */
+	RIGHT_PADDLE2,   /**< Lower or secondary paddle, under your right hand (e.g. Xbox Elite paddle P2, DualSense Edge right Fn button, Right Joy-Con SL button) */
+	LEFT_PADDLE2,    /**< Lower or secondary paddle, under your left hand (e.g. Xbox Elite paddle P4, DualSense Edge left Fn button, Left Joy-Con SR button) */
+	TOUCHPAD,        /**< PS4/PS5 touchpad button */
+	MISC2,           /**< Additional button */
+	MISC3,           /**< Additional button (e.g. Nintendo GameCube left trigger click) */
+	MISC4,           /**< Additional button (e.g. Nintendo GameCube right trigger click) */
+	MISC5,           /**< Additional button */
+	MISC6,           /**< Additional button */
+	COUNT,
+}
+
+enum GamepadButtonLabel
+{
+	UNKNOWN,
+	A,
+	B,
+	X,
+	Y,
+	CROSS,
+	CIRCLE,
+	SQUARE,
+	TRIANGLE,
+}
+
+constdef GamepadCapProperties : ZString
+{
+	MONO_LED_BOOLEAN       = (GamepadCapProperties)JoystickCapProperties.MONO_LED_BOOLEAN,
+	RGB_LED_BOOLEAN        = (GamepadCapProperties)JoystickCapProperties.RGB_LED_BOOLEAN,
+	PLAYER_LED_BOOLEAN     = (GamepadCapProperties)JoystickCapProperties.PLAYER_LED_BOOLEAN,
+	RUMBLE_BOOLEAN         = (GamepadCapProperties)JoystickCapProperties.RUMBLE_BOOLEAN,
+	TRIGGER_RUMBLE_BOOLEAN = (GamepadCapProperties)JoystickCapProperties.TRIGGER_RUMBLE_BOOLEAN,
+}
+
+enum GamepadType
+{
+	UNKNOWN,
+	STANDARD,
+	XBOX360,
+	XBOXONE,
+	PS3,
+	PS4,
+	PS5,
+	NINTENDO_SWITCH_PRO,
+	NINTENDO_SWITCH_JOYCON_LEFT,
+	NINTENDO_SWITCH_JOYCON_RIGHT,
+	NINTENDO_SWITCH_JOYCON_PAIR,
+	GAMECUBE,
+	COUNT,
+}
+
+
+// Functions
+extern fn int add_gamepad_mapping(char* mapping) @cname("SDL_AddGamepadMapping");
+extern fn int add_gamepad_mappings_from_file(char* file) @cname("SDL_AddGamepadMappingsFromFile");
+extern fn int add_gamepad_mappings_from_io(IOStream* src, bool closeio) @cname("SDL_AddGamepadMappingsFromIO");
+extern fn void close_gamepad(Gamepad *gamepad) @cname("SDL_CloseGamepad");
+extern fn bool gamepad_connected(Gamepad* gamepad) @cname("SDL_GamepadConnected");
+extern fn bool gamepad_events_enabled() @cname("SDL_GamepadEventsEnabled");
+extern fn bool gamepad_has_axis(Gamepad* gamepad, GamepadAxis axis) @cname("SDL_GamepadHasAxis");
+extern fn bool gamepad_has_button(Gamepad* gamepad, GamepadButton button) @cname("SDL_GamepadHasButton");
+extern fn bool gamepad_has_sensor(Gamepad* gamepad, SensorType type) @cname("SDL_GamepadHasSensor");
+extern fn bool gamepad_sensor_enabled(Gamepad* gamepad, SensorType type) @cname("SDL_GamepadSensorEnabled");
+extern fn char* get_gamepad_apple_sf_symbols_name_for_axis(Gamepad* gamepad, GamepadAxis axis) @cname("SDL_GetGamepadAppleSFSymbolsNameForAxis");
+extern fn char* get_gamepad_apple_sf_symbols_name_for_button(Gamepad* gamepad, GamepadButton button) @cname("SDL_GetGamepadAppleSFSymbolsNameForButton");
+extern fn short get_gamepad_axis(Gamepad* gamepad, GamepadAxis axis) @cname("SDL_GetGamepadAxis");
+extern fn GamepadAxis get_gamepad_axis_from_string(char* str) @cname("SDL_GetGamepadAxisFromString");
+extern fn GamepadBinding** get_gamepad_bindings(Gamepad* gamepad, int* count) @cname("SDL_GetGamepadBindings");
+extern fn bool get_gamepad_button(Gamepad* gamepad, GamepadButton button) @cname("SDL_GetGamepadButton");
+extern fn GamepadButton get_gamepad_button_from_string(char* str) @cname("SDL_GetGamepadButtonFromString");
+extern fn GamepadButtonLabel get_gamepad_button_label(Gamepad* gamepad, GamepadButton button) @cname("SDL_GetGamepadButtonLabel");
+extern fn GamepadButtonLabel get_gamepad_button_label_for_type(GamepadType type, GamepadButton button) @cname("SDL_GetGamepadButtonLabelForType");
+extern fn JoystickConnectionState get_gamepad_connection_state(Gamepad* gamepad) @cname("SDL_GetGamepadConnectionState");
+extern fn ushort get_gamepad_firmware_version(Gamepad* gamepad) @cname("SDL_GetGamepadFirmwareVersion");
+extern fn Gamepad* get_gamepad_from_id(JoystickID instance_id) @cname("SDL_GetGamepadFromID");
+extern fn Gamepad* get_gamepad_from_player_index(int player_index) @cname("SDL_GetGamepadFromPlayerIndex");
+extern fn Guid get_gamepad_guid_for_id(JoystickID instance_id) @cname("SDL_GetGamepadGUIDForID");
+extern fn JoystickID get_gamepad_id(Gamepad* gamepad) @cname("SDL_GetGamepadID");
+extern fn Joystick* get_gamepad_joystick(Gamepad* gamepad) @cname("SDL_GetGamepadJoystick");
+extern fn char* get_gamepad_mapping(Gamepad* gamepad) @cname("SDL_GetGamepadMapping");
+extern fn char* get_gamepad_mapping_for_guid(Guid guid) @cname("SDL_GetGamepadMappingForGUID");
+extern fn char* get_gamepad_mapping_for_id(JoystickID instance_id) @cname("SDL_GetGamepadMappingForID");
+extern fn char** get_gamepad_mappings(int* count) @cname("SDL_GetGamepadMappings");
+extern fn char* get_gamepad_name(Gamepad* gamepad) @cname("SDL_GetGamepadName");
+extern fn char* get_gamepad_name_for_id(JoystickID instance_id) @cname("SDL_GetGamepadNameForID");
+extern fn char* get_gamepad_path(Gamepad* gamepad) @cname("SDL_GetGamepadPath");
+extern fn char* get_gamepad_path_for_id(JoystickID instance_id) @cname("SDL_GetGamepadPathForID");
+extern fn int get_gamepad_player_index(Gamepad* gamepad) @cname("SDL_GetGamepadPlayerIndex");
+extern fn int get_gamepad_player_index_for_id(JoystickID instance_id) @cname("SDL_GetGamepadPlayerIndexForID");
+extern fn PowerState get_gamepad_power_info(Gamepad* gamepad, int* percent) @cname("SDL_GetGamepadPowerInfo");
+extern fn ushort get_gamepad_product(Gamepad* gamepad) @cname("SDL_GetGamepadProduct");
+extern fn ushort get_gamepad_product_for_id(JoystickID instance_id) @cname("SDL_GetGamepadProductForID");
+extern fn ushort get_gamepad_product_version(Gamepad* gamepad) @cname("SDL_GetGamepadProductVersion");
+extern fn ushort get_gamepad_product_version_for_id(JoystickID instance_id) @cname("SDL_GetGamepadProductVersionForID");
+extern fn PropertiesID get_gamepad_properties(Gamepad* gamepad) @cname("SDL_GetGamepadProperties");
+extern fn JoystickID* get_gamepads(int* count) @cname("SDL_GetGamepads");
+extern fn bool get_gamepad_sensor_data(Gamepad* gamepad, SensorType type, float* data, int num_values) @cname("SDL_GetGamepadSensorData");
+extern fn float get_gamepad_sensor_data_rate(Gamepad* gamepad, SensorType type) @cname("SDL_GetGamepadSensorDataRate");
+extern fn char* get_gamepad_serial(Gamepad* gamepad) @cname("SDL_GetGamepadSerial");
+extern fn ulong get_gamepad_steam_handle(Gamepad* gamepad) @cname("SDL_GetGamepadSteamHandle");
+extern fn char* get_gamepad_string_for_axis(GamepadAxis axis) @cname("SDL_GetGamepadStringForAxis");
+extern fn char* get_gamepad_string_for_button(GamepadButton button) @cname("SDL_GetGamepadStringForButton");
+extern fn char* get_gamepad_string_for_type(GamepadType type) @cname("SDL_GetGamepadStringForType");
+extern fn bool get_gamepad_touchpad_finger(Gamepad* gamepad, int touchpad, int finger, bool* down, float* x, float* y, float* pressure) @cname("SDL_GetGamepadTouchpadFinger");
+extern fn GamepadType get_gamepad_type(Gamepad* gamepad) @cname("SDL_GetGamepadType");
+extern fn GamepadType get_gamepad_type_for_id(JoystickID instance_id) @cname("SDL_GetGamepadTypeForID");
+extern fn GamepadType get_gamepad_type_from_string(char* str) @cname("SDL_GetGamepadTypeFromString");
+extern fn ushort get_gamepad_vendor(Gamepad* gamepad) @cname("SDL_GetGamepadVendor");
+extern fn ushort get_gamepad_vendor_for_id(JoystickID instance_id) @cname("SDL_GetGamepadVendorForID");
+extern fn int get_num_gamepad_touchpad_fingers(Gamepad* gamepad, int touchpad) @cname("SDL_GetNumGamepadTouchpadFingers");
+extern fn int get_num_gamepad_touchpads(Gamepad* gamepad) @cname("SDL_GetNumGamepadTouchpads");
+extern fn GamepadType get_real_gamepad_type(Gamepad* gamepad) @cname("SDL_GetRealGamepadType");
+extern fn GamepadType get_real_gamepad_type_for_id(JoystickID instance_id) @cname("SDL_GetRealGamepadTypeForID");
+extern fn bool has_gamepad() @cname("SDL_HasGamepad");
+extern fn bool is_gamepad(JoystickID instance_id) @cname("SDL_IsGamepad");
+extern fn Gamepad* open_gamepad(JoystickID instance_id) @cname("SDL_OpenGamepad");
+extern fn bool reload_gamepad_mappings() @cname("SDL_ReloadGamepadMappings");
+extern fn bool rumble_gamepad(Gamepad* gamepad, ushort low_frequency_rumble, ushort high_frequency_rumble, uint duration_ms) @cname("SDL_RumbleGamepad");
+extern fn bool rumble_gamepad_triggers(Gamepad* gamepad, ushort left_rumble, ushort right_rumble, uint duration_ms) @cname("SDL_RumbleGamepadTriggers");
+extern fn bool send_gamepad_effect(Gamepad* gamepad, void* data, int size) @cname("SDL_SendGamepadEffect");
+extern fn void set_gamepad_events_enabled(bool enabled) @cname("SDL_SetGamepadEventsEnabled");
+extern fn bool set_gamepad_led(Gamepad* gamepad, char red, char green, char blue) @cname("SDL_SetGamepadLED");
+extern fn bool set_gamepad_mapping(JoystickID instance_id, char* mapping) @cname("SDL_SetGamepadMapping");
+extern fn bool set_gamepad_player_index(Gamepad* gamepad, int player_index) @cname("SDL_SetGamepadPlayerIndex");
+extern fn bool set_gamepad_sensor_enabled(Gamepad* gamepad, SensorType type, bool enabled) @cname("SDL_SetGamepadSensorEnabled");
+extern fn void update_gamepads() @cname("SDL_UpdateGamepads");

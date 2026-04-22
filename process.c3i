@@ -1,0 +1,52 @@
+
+module sdl;
+
+// Types
+typedef Process = void;
+
+
+// Enums
+enum ProcessIO
+{
+	INHERITED,    /**< The I/O stream is inherited from the application. */
+	NULL,         /**< The I/O stream is ignored. */
+	APP,          /**< The I/O stream is connected to a new SDL_IOStream that the application can read or write */
+	REDIRECT,     /**< The I/O stream is redirected to an existing SDL_IOStream. */
+}
+
+constdef ProcessCreateProperties : ZString
+{
+	ARGS_POINTER              = "SDL.process.create.args",
+	ENVIRONMENT_POINTER       = "SDL.process.create.environment",
+	WORKING_DIRECTORY_STRING  = "SDL.process.create.working_directory",
+	STDIN_NUMBER              = "SDL.process.create.stdin_option",
+	STDIN_POINTER             = "SDL.process.create.stdin_source",
+	STDOUT_NUMBER             = "SDL.process.create.stdout_option",
+	STDOUT_POINTER            = "SDL.process.create.stdout_source",
+	STDERR_NUMBER             = "SDL.process.create.stderr_option",
+	STDERR_POINTER            = "SDL.process.create.stderr_source",
+	STDERR_TO_STDOUT_BOOLEAN  = "SDL.process.create.stderr_to_stdout",
+	BACKGROUND_BOOLEAN        = "SDL.process.create.background",
+	CMDLINE_STRING            = "SDL.process.create.cmdline",
+}
+
+constdef ProcessProperties : ZString
+{
+	PID_NUMBER         = "SDL.process.pid",
+	STDIN_POINTER      = "SDL.process.stdin",
+	STDOUT_POINTER     = "SDL.process.stdout",
+	STDERR_POINTER     = "SDL.process.stderr",
+	BACKGROUND_BOOLEAN = "SDL.process.background",
+}
+
+
+// Functions
+extern fn Process* create_process(char** args, bool pipe_stdio) @cname("SDL_CreateProcess");
+extern fn Process* create_process_with_properties(PropertiesID props) @cname("SDL_CreateProcessWithProperties");
+extern fn void destroy_process(Process* process) @cname("SDL_DestroyProcess");
+extern fn IOStream* get_process_input(Process* process) @cname("SDL_GetProcessInput");
+extern fn IOStream* get_process_output(Process* process) @cname("SDL_GetProcessOutput");
+extern fn PropertiesID get_process_properties(Process* process) @cname("SDL_GetProcessProperties");
+extern fn bool kill_process(Process* process, bool force) @cname("SDL_KillProcess");
+extern fn void* read_process(Process* process, usz* datasize, int* exitcode) @cname("SDL_ReadProcess");
+extern fn bool wait_process(Process* process, bool block, int* exitcode) @cname("SDL_WaitProcess");

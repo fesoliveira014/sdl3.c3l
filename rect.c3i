@@ -1,0 +1,74 @@
+
+module sdl;
+
+import std::math;
+
+// Structs
+struct Point
+{
+	int x, y;
+}
+
+struct Rect
+{
+	int x, y;
+	int w, h;
+}
+
+struct FPoint
+{
+	float x, y;
+}
+
+struct FRect
+{
+	float x, y;
+	float w, h;
+}
+
+
+// Macros
+macro void rect_to_f_rect(Rect* rect, FRect* frect)
+{
+	frect.x = (float)rect.x;
+	frect.y = (float)rect.y;
+	frect.w = (float)rect.w;
+	frect.h = (float)rect.h;
+}
+
+macro bool point_in_rect(Point* p, Rect* r) =>
+	( p && r && (p.x >= r.x) && (p.x < (r.x + r.w)) &&
+	(p.y >= r.y) && (p.y < (r.y + r.h)) );
+
+macro bool rect_empty(Rect* r) => ((!r) || (r.w <= 0) || (r.h <= 0));
+
+macro bool rects_equal(Rect* a, Rect* b) =>
+	(a && b && (a.x == b.x) && (a.y == b.y) &&
+	(a.w == b.w) && (a.h == b.h));
+
+macro bool point_in_rect_float(FPoint* p, FRect* r) =>
+	( p && r && (p.x >= r.x) && (p.x <= (r.x + r.w)) &&
+	(p.y >= r.y) && (p.y <= (r.y + r.h)) );
+
+macro bool rect_empty_float(FRect* r) => (!r) || (r.w < 0.0f) || (r.h < 0.0f);
+
+macro bool rects_equal_epsilon(FRect* a, FRect* b, float epsilon) =>
+	(a && b && ((a == b) ||
+	((math::abs(a.x - b.x) <= epsilon) &&
+	(math::abs(a.y - b.y) <= epsilon) &&
+	(math::abs(a.w - b.w) <= epsilon) &&
+	(math::abs(a.h - b.h) <= epsilon))));
+
+macro bool rects_equal_float(FRect* a, FRect* b) => rects_equal_epsilon(a, b, stdinc::FLT_EPSILON);
+
+// Functions
+extern fn bool get_rect_and_line_intersection(Rect* rect, int* x1, int* y1, int* x2, int* y2) @cname("SDL_GetRectAndLineIntersection");
+extern fn bool get_rect_and_line_intersection_float(FRect* rect, float* x1, float* y1, float* x2, float* y2) @cname("SDL_GetRectAndLineIntersectionFloat");
+extern fn bool get_rect_enclosing_points(Point* points, int count, Rect* clip, Rect* result) @cname("SDL_GetRectEnclosingPoints");
+extern fn bool get_rect_enclosing_points_float(FPoint* points, int count, FRect* clip, FRect* result) @cname("SDL_GetRectEnclosingPointsFloat");
+extern fn bool get_rect_intersection(Rect* a, Rect* b, Rect* result) @cname("SDL_GetRectIntersection");
+extern fn bool get_rect_intersection_float(FRect* a, FRect* b, FRect* result) @cname("SDL_GetRectIntersectionFloat");
+extern fn bool get_rect_union(Rect* a, Rect* b, Rect* result) @cname("SDL_GetRectUnion");
+extern fn bool get_rect_union_float(FRect* a, FRect* b, FRect* result) @cname("SDL_GetRectUnionFloat");
+extern fn bool has_rect_intersection(Rect* a, Rect* b) @cname("SDL_HasRectIntersection");
+extern fn bool has_rect_intersection_float(FRect* a, FRect* b) @cname("SDL_HasRectIntersectionFloat");

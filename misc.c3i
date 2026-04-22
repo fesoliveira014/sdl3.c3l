@@ -1,0 +1,5 @@
+
+module sdl;
+
+// Functions
+extern fn bool open_url(char* url) @cname("SDL_OpenURL");

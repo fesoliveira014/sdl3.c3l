@@ -1,0 +1,42 @@
+
+module sdl;
+
+// Constants
+const STANDARD_GRAVITY = 9.80665f;
+
+
+// Types
+typedef Sensor = void;
+typedef SensorID = uint;
+
+
+// Enums
+constdef SensorType : CInt
+{
+	INVALID = -1, /**< Returned for an invalid sensor */
+	UNKNOWN,      /**< Unknown sensor type */
+	ACCEL,        /**< Accelerometer */
+	GYRO,         /**< Gyroscope */
+	ACCEL_L,      /**< Accelerometer for left Joy-Con controller and Wii nunchuk */
+	GYRO_L,       /**< Gyroscope for left Joy-Con controller */
+	ACCEL_R,      /**< Accelerometer for right Joy-Con controller */
+	GYRO_R,       /**< Gyroscope for right Joy-Con controller */
+	COUNT
+}
+
+
+// Functions
+extern fn void close_sensor(Sensor* sensor) @cname("SDL_CloseSensor");
+extern fn bool get_sensor_data(Sensor* sensor, float* data, int num_values) @cname("SDL_GetSensorData");
+extern fn Sensor* get_sensor_from_id(SensorID instance_id) @cname("SDL_GetSensorFromID");
+extern fn SensorID get_sensor_id(Sensor* sensor) @cname("SDL_GetSensorID");
+extern fn char* get_sensor_name(Sensor* sensor) @cname("SDL_GetSensorName");
+extern fn char* get_sensor_name_for_id(SensorID instance_id) @cname("SDL_GetSensorNameForID");
+extern fn int get_sensor_non_portable_type(Sensor* sensor) @cname("SDL_GetSensorNonPortableType");
+extern fn int get_sensor_non_portable_type_for_id(SensorID instance_id) @cname("SDL_GetSensorNonPortableTypeForID");
+extern fn PropertiesID get_sensor_properties(Sensor* sensor) @cname("SDL_GetSensorProperties");
+extern fn SensorID* get_sensors(int* count) @cname("SDL_GetSensors");
+extern fn SensorType get_sensor_type(Sensor* sensor) @cname("SDL_GetSensorType");
+extern fn SensorType get_sensor_type_for_id(SensorID instance_id) @cname("SDL_GetSensorTypeForID");
+extern fn Sensor* open_sensor(SensorID instance_id) @cname("SDL_OpenSensor");
+extern fn void update_sensors() @cname("SDL_UpdateSensors");

@@ -1,0 +1,151 @@
+
+module sdl;
+
+// Type
+typedef IOStream = void;
+alias IOStreamSizeCallback = fn long(void* userdata);
+alias IOStreamSeekCallback = fn long(void* userdata, long offset, IOWhence whence);
+alias IOStreamReadCallback = fn usz(void* userdata, void* ptr, usz size, IOStatus* status);
+alias IOStreamWriteCallback = fn usz(void* userdata, void* ptr, usz size, IOStatus* status);
+alias IOStreamFlushCallback = fn bool(void* userdata, IOStatus* status);
+alias IOStreamCloseCallback = fn bool(void* userdata);
+
+
+// Struct
+struct IOStreamInterface
+{
+	/* The version of this interface */
+	uint version;
+
+	/** Return the number of bytes in this SDL_IOStream
+	*  \return the total size of the data stream, or -1 on error. */
+	IOStreamSizeCallback size;
+
+	/** IOStreamSeekCallback to `offset` relative to `whence`, one of stdio's whence values:
+	*  SDL_IO_SEEK_SET, SDL_IO_SEEK_CUR, SDL_IO_SEEK_END
+	*  \return the final offset in the data stream, or -1 on error. */
+	IOStreamSeekCallback seek;
+
+	/** IOStreamReadCallback up to `size` bytes from the data stream to the area pointed
+	*  at by `ptr`. `size` will always be > 0.
+	*  On an incomplete read, you should set `*status` to a value from the
+	*  SDL_IOStatus enum. You do not have to explicitly set this on
+	*  a complete, successful read.
+	*  \return the number of bytes read */
+	IOStreamReadCallback read;
+
+	/** IOStreamWriteCallback exactly `size` bytes from the area pointed at by `ptr`
+	*  to data stream. `size` will always be > 0.
+	*  On an incomplete write, you should set `*status` to a value from the
+	*  SDL_IOStatus enum. You do not have to explicitly set this on
+	*  a complete, successful write.
+	*  \return the number of bytes written */
+	IOStreamWriteCallback write;
+
+	/** If the stream is buffering, make sure the data is written out.
+	*  On failure, you should set `*status` to a value from the
+	*  SDL_IOStatus enum. You do not have to explicitly set this on
+	*  a successful flush.
+	*  \return true if successful or false on write error when flushing data. */
+	IOStreamFlushCallback flush;
+
+	/** IOStreamCloseCallback and free any allocated resources.
+	*  This does not guarantee file writes will sync to physical media; they
+	*  can be in the system's file cache, waiting to go to disk.
+	*  The SDL_IOStream is still destroyed even if this fails, so clean up anything
+	*  even if flushing buffers, etc, returns an error.
+	*  \return true if successful or false on write error when flushing data. */
+	IOStreamCloseCallback close;
+
+}
+
+
+// Enum
+enum IOStatus
+{
+	READY,     /**< Everything is ready (no errors and not EOF). */
+	ERROR,     /**< IOStreamReadCallback or write I/O error */
+	EOF,       /**< End of file */
+	NOT_READY, /**< Non blocking I/O, not ready */
+	READONLY,  /**< Tried to write a read-only buffer */
+	WRITEONLY, /**< Tried to read a write-only buffer */
+}
+
+enum IOWhence
+{
+	SET,  /**< IOStreamSeekCallback from the beginning of data */
+	CUR,  /**< IOStreamSeekCallback relative to current read point */
+	END,  /**< IOStreamSeekCallback relative to the end of data */
+}
+
+constdef IOStreamProperties : ZString
+{
+	WINDOWS_HANDLE_POINTER = "SDL.iostream.windows.handle",
+	STDIO_FILE_POINTER     = "SDL.iostream.stdio.file",
+	FILE_DESCRIPTOR_NUMBER = "SDL.iostream.file_descriptor",
+	ANDROID_AASSET_POINTER = "SDL.iostream.android.aasset",
+}
+
+constdef IOStreamMemoryProperties : ZString
+{
+	POINTER           = "SDL.iostream.memory.base",
+	SIZE_NUMBER       = "SDL.iostream.memory.size",
+	FREE_FUNC_POINTER = "SDL.iostream.memory.free",
+}
+
+constdef IOStreamDynamicProperties : ZString
+{
+	MEMORY_POINTER   = "SDL.iostream.dynamic.memory",
+	CHUNKSIZE_NUMBER = "SDL.iostream.dynamic.chunksize",
+}
+
+
+// Functions
+extern fn bool close_io(IOStream* context) @cname("SDL_CloseIO");
+extern fn bool flush_io(IOStream* context) @cname("SDL_FlushIO");
+extern fn PropertiesID get_io_properties(IOStream* context) @cname("SDL_GetIOProperties");
+extern fn long get_io_size(IOStream* context) @cname("SDL_GetIOSize");
+extern fn IOStatus get_io_status(IOStream* context) @cname("SDL_GetIOStatus");
+extern fn IOStream* from_const_mem_io(void* mem, usz size) @cname("SDL_IOFromConstMem");
+extern fn IOStream* from_dynamic_mem_io() @cname("SDL_IOFromDynamicMem");
+extern fn IOStream* from_file_io(char* file, char* mode) @cname("SDL_IOFromFile");
+extern fn IOStream* from_mem_io(void* mem, usz size) @cname("SDL_IOFromMem");
+extern fn usz printf_io(IOStream* context, char* fmt, ...) @cname("SDL_IOprintf");
+extern fn usz vprintf_io(IOStream* context, char* fmt, CVaList ap) @cname("SDL_IOvprintf");
+extern fn void* load_file(char* file, usz* datasize) @cname("SDL_LoadFile");
+extern fn void* load_file_io(IOStream* src, usz* datasize, bool closeio) @cname("SDL_LoadFile_IO");
+extern fn IOStream* open_io(IOStreamInterface* iface, void* userdata) @cname("SDL_OpenIO");
+extern fn usz read_io(IOStream* context, void* ptr, usz size) @cname("SDL_ReadIO");
+extern fn bool read_s16_be(IOStream* src, short* value) @cname("SDL_ReadS16BE");
+extern fn bool read_s16_le(IOStream* src, short* value) @cname("SDL_ReadS16LE");
+extern fn bool read_s32_be(IOStream* src, int* value) @cname("SDL_ReadS32BE");
+extern fn bool read_s32_le(IOStream* src, int* value) @cname("SDL_ReadS32LE");
+extern fn bool read_s64_be(IOStream* src, long* value) @cname("SDL_ReadS64BE");
+extern fn bool read_s64_le(IOStream* src, long* value) @cname("SDL_ReadS64LE");
+extern fn bool read_s8(IOStream* src, ichar* value) @cname("SDL_ReadS8");
+extern fn bool read_u16_be(IOStream* src, ushort* value) @cname("SDL_ReadU16BE");
+extern fn bool read_u16_le(IOStream* src, ushort* value) @cname("SDL_ReadU16LE");
+extern fn bool read_u32_be(IOStream* src, uint* value) @cname("SDL_ReadU32BE");
+extern fn bool read_u32_le(IOStream* src, uint* value) @cname("SDL_ReadU32LE");
+extern fn bool read_u64_be(IOStream* src, ulong* value) @cname("SDL_ReadU64BE");
+extern fn bool read_u64_le(IOStream* src, ulong* value) @cname("SDL_ReadU64LE");
+extern fn bool read_u8(IOStream* src, char* value) @cname("SDL_ReadU8");
+extern fn bool save_file(char* file, void* data, usz datasize) @cname("SDL_SaveFile");
+extern fn bool save_file_io(IOStream* src, void* data, usz datasize, bool closeio) @cname("SDL_SaveFile_IO");
+extern fn long seek_io(IOStream* context, long offset, IOWhence whence) @cname("SDL_SeekIO");
+extern fn long tell_io(IOStream* context) @cname("SDL_TellIO");
+extern fn usz write_io(IOStream* context, void* ptr, usz size) @cname("SDL_WriteIO");
+extern fn bool write_s16_be(IOStream* dst, short value) @cname("SDL_WriteS16BE");
+extern fn bool write_s16_le(IOStream* dst, short value) @cname("SDL_WriteS16LE");
+extern fn bool write_s32_be(IOStream* dst, int value) @cname("SDL_WriteS32BE");
+extern fn bool write_s32_le(IOStream* dst, int value) @cname("SDL_WriteS32LE");
+extern fn bool write_s64_be(IOStream* dst, long value) @cname("SDL_WriteS64BE");
+extern fn bool write_s64_le(IOStream* dst, long value) @cname("SDL_WriteS64LE");
+extern fn bool write_s8(IOStream* dst, ichar value) @cname("SDL_WriteS8");
+extern fn bool write_u16_be(IOStream* dst, ushort value) @cname("SDL_WriteU16BE");
+extern fn bool write_u16_le(IOStream* dst, ushort value) @cname("SDL_WriteU16LE");
+extern fn bool write_u32_be(IOStream* dst, uint value) @cname("SDL_WriteU32BE");
+extern fn bool write_u32_le(IOStream* dst, uint value) @cname("SDL_WriteU32LE");
+extern fn bool write_u64_be(IOStream* dst, ulong value) @cname("SDL_WriteU64BE");
+extern fn bool write_u64_le(IOStream* dst, ulong value) @cname("SDL_WriteU64LE");
+extern fn bool write_u8(IOStream* dst, char value) @cname("SDL_WriteU8");

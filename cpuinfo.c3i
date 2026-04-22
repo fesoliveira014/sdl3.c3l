@@ -1,0 +1,27 @@
+
+module sdl;
+
+// Constants
+const CACHELINE_SIZE = 128;
+
+
+// Functions
+extern fn int get_cpu_cache_line_size() @cname("SDL_GetCPUCacheLineSize");
+extern fn int get_num_logical_cpu_cores() @cname("SDL_GetNumLogicalCPUCores");
+extern fn usz get_simd_alignment() @cname("SDL_GetSIMDAlignment");
+extern fn int get_system_page_size() @cname("SDL_GetSystemPageSize");
+extern fn int get_system_ram() @cname("SDL_GetSystemRAM");
+extern fn bool has_alti_vec() @cname("SDL_HasAltiVec");
+extern fn bool has_armsimd() @cname("SDL_HasARMSIMD");
+extern fn bool has_avx() @cname("SDL_HasAVX");
+extern fn bool has_avx2() @cname("SDL_HasAVX2");
+extern fn bool has_avx512_f() @cname("SDL_HasAVX512F");
+extern fn bool has_lasx() @cname("SDL_HasLASX");
+extern fn bool has_lsx() @cname("SDL_HasLSX");
+extern fn bool has_mmx() @cname("SDL_HasMMX");
+extern fn bool has_neon() @cname("SDL_HasNEON");
+extern fn bool has_sse() @cname("SDL_HasSSE");
+extern fn bool has_sse2() @cname("SDL_HasSSE2");
+extern fn bool has_sse3() @cname("SDL_HasSSE3");
+extern fn bool has_sse41() @cname("SDL_HasSSE41");
+extern fn bool has_sse42() @cname("SDL_HasSSE42");

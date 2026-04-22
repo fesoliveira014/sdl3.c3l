@@ -1,0 +1,5 @@
+
+module sdl;
+
+// Functions
+extern fn char* get_platform() @cname("SDL_GetPlatform");

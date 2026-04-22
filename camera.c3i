@@ -1,0 +1,52 @@
+
+module sdl;
+
+// Types
+typedef Camera = void;
+typedef CameraID = uint;
+
+
+// Structs
+struct CameraSpec
+{
+	PixelFormat format;      /**< Frame format */
+	Colorspace colorspace;   /**< Frame colorspace */
+	int width;                  /**< Frame width */
+	int height;                 /**< Frame height */
+	int framerate_numerator;    /**< Frame rate numerator ((num / denom) == FPS, (denom / num) == duration in seconds) */
+	int framerate_denominator;  /**< Frame rate denominator ((num / denom) == FPS, (denom / num) == duration in seconds) */
+}
+
+
+// Enums
+constdef CameraPermissionState : CInt
+{
+	DENIED = -1,
+	PENDING,
+	APPROVED,
+}
+
+enum CameraPosition
+{
+	UNKNOWN,
+	FRONT_FACING,
+	BACK_FACING,
+}
+
+
+// Functions
+extern fn Surface* acquire_camera_frame(Camera* camera, ulong* timestampNS) @cname("SDL_AcquireCameraFrame");
+extern fn void close_camera(Camera* camera) @cname("SDL_CloseCamera");
+extern fn char* get_camera_driver(int index) @cname("SDL_GetCameraDriver");
+extern fn bool get_camera_format(Camera* camera, CameraSpec* spec) @cname("SDL_GetCameraFormat");
+extern fn CameraID get_camera_id(Camera* camera) @cname("SDL_GetCameraID");
+extern fn char* get_camera_name(CameraID instance_id) @cname("SDL_GetCameraName");
+extern fn CameraPermissionState get_camera_permission_state(Camera* camera) @cname("SDL_GetCameraPermissionState");
+extern fn CameraPosition get_camera_position(CameraID instance_id) @cname("SDL_GetCameraPosition");
+extern fn PropertiesID get_camera_properties(Camera* camera) @cname("SDL_GetCameraProperties");
+extern fn CameraID* get_cameras(int* count) @cname("SDL_GetCameras");
+extern fn CameraSpec** get_camera_supported_formats(CameraID instance_id, int* count) @cname("SDL_GetCameraSupportedFormats");
+extern fn char* get_current_camera_driver() @cname("SDL_GetCurrentCameraDriver");
+extern fn int get_num_camera_drivers() @cname("SDL_GetNumCameraDrivers");
+extern fn Camera* open_camera(CameraID instance_id, CameraSpec* spec) @cname("SDL_OpenCamera");
+extern fn void release_camera_frame(Camera* camera, Surface* frame) @cname("SDL_ReleaseCameraFrame");

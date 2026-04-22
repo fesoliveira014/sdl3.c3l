@@ -1,0 +1,34 @@
+
+module sdl;
+
+// Types
+typedef SpinLock = int;
+
+
+// Structs
+struct AtomicInt { int value; }
+struct AtomicU32 { uint value; }
+
+
+// Macros
+macro atomic_inc_ref(AtomicInt* a) => add_atomic_int(a, 1);
+macro atomic_dec_ref(AtomicInt* a) => add_atomic_int(a, -1) == 1;
+
+
+// Functions
+extern fn int add_atomic_int(AtomicInt* a, int v) @cname("SDL_AddAtomicInt");
+extern fn uint add_atomic_u32(AtomicU32* a, int v) @cname("SDL_AddAtomicU32");
+extern fn bool compare_and_swap_atomic_int(AtomicInt* a, int oldval, int newval) @cname("SDL_CompareAndSwapAtomicInt");
+extern fn bool compare_and_swap_atomic_pointer(void** a, void* oldval, void* newval) @cname("SDL_CompareAndSwapAtomicPointer");
+extern fn bool compare_and_swap_atomic_u32(AtomicU32* a, uint oldval, uint newval) @cname("SDL_CompareAndSwapAtomicU32");
+extern fn int get_atomic_int(AtomicInt* a) @cname("SDL_GetAtomicInt");
+extern fn void* get_atomic_pointer(void** a) @cname("SDL_GetAtomicPointer");
+extern fn uint get_atomic_u32(AtomicU32* a) @cname("SDL_GetAtomicU32");
+extern fn void lock_spinlock(SpinLock* lock) @cname("SDL_LockSpinlock");
+extern fn void memory_barrier_acquire_function() @cname("SDL_MemoryBarrierAcquireFunction");
+extern fn void memory_barrier_release_function() @cname("SDL_MemoryBarrierReleaseFunction");
+extern fn int set_atomic_int(AtomicInt* a, int v) @cname("SDL_SetAtomicInt");
+extern fn void* set_atomic_pointer(void** a, void* v) @cname("SDL_SetAtomicPointer");
+extern fn uint set_atomic_u32(AtomicU32* a, uint v) @cname("SDL_SetAtomicU32");
+extern fn bool try_lock_spinlock(SpinLock* lock) @cname("SDL_TryLockSpinlock");
+extern fn void unlock_spinlock(SpinLock* lock) @cname("SDL_UnlockSpinlock");

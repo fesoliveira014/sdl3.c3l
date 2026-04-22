@@ -1,0 +1,64 @@
+
+module sdl;
+
+// Constants
+const ANDROID_EXTERNAL_STORAGE_READ  = 0x01;
+const ANDROID_EXTERNAL_STORAGE_WRITE = 0x02;
+
+
+// Types
+alias IOSAnimationCallback = fn void(void* userdata);
+alias RequestAndroidPermissionCallback = fn void(void* userdata, char* permission, bool granted);
+typedef Msg = void;
+alias WindowsMessageHook = fn bool(void* userdata, Msg* msg);
+typedef XEvent = void;
+alias X11EventHook = fn bool(void* userdata, XEvent* xevent);
+typedef XTaskQueueHandle = void*;
+typedef XUserHandle = void*;
+
+
+// Enums
+enum Sandbox
+{
+	NONE,
+	UNKNOWN_CONTAINER,
+	FLATPAK,
+	SNAP,
+	MACOS,
+}
+
+
+// Functions
+extern fn void* get_android_activity() @cname("SDL_GetAndroidActivity");
+extern fn char* get_android_cache_path() @cname("SDL_GetAndroidCachePath");
+extern fn char* get_android_external_storage_path() @cname("SDL_GetAndroidExternalStoragePath");
+extern fn uint get_android_external_storage_state() @cname("SDL_GetAndroidExternalStorageState");
+extern fn char* get_android_internal_storage_path() @cname("SDL_GetAndroidInternalStoragePath");
+extern fn void* get_android_jni_env() @cname("SDL_GetAndroidJNIEnv");
+extern fn int get_android_sdk_version() @cname("SDL_GetAndroidSDKVersion");
+extern fn int get_direct3_d9_adapter_index(DisplayID displayID) @cname("SDL_GetDirect3D9AdapterIndex");
+extern fn bool get_dxgi_output_info(DisplayID displayID, int* adapterIndex, int* outputIndex) @cname("SDL_GetDXGIOutputInfo");
+extern fn bool get_gdk_default_user(XUserHandle* outUserHandle) @cname("SDL_GetGDKDefaultUser");
+extern fn bool get_gdk_task_queue(XTaskQueueHandle* outTaskQueue) @cname("SDL_GetGDKTaskQueue");
+extern fn Sandbox get_sandbox() @cname("SDL_GetSandbox");
+extern fn bool is_chromebook() @cname("SDL_IsChromebook");
+extern fn bool is_de_x_mode() @cname("SDL_IsDeXMode");
+extern fn bool is_tablet() @cname("SDL_IsTablet");
+extern fn bool is_tv() @cname("SDL_IsTV");
+extern fn void on_application_did_change_status_bar_orientation() @cname("SDL_OnApplicationDidChangeStatusBarOrientation");
+extern fn void on_application_did_enter_background() @cname("SDL_OnApplicationDidEnterBackground");
+extern fn void on_application_did_enter_foreground() @cname("SDL_OnApplicationDidEnterForeground");
+extern fn void on_application_did_receive_memory_warning() @cname("SDL_OnApplicationDidReceiveMemoryWarning");
+extern fn void on_application_will_enter_background() @cname("SDL_OnApplicationWillEnterBackground");
+extern fn void on_application_will_enter_foreground() @cname("SDL_OnApplicationWillEnterForeground");
+extern fn void on_application_will_terminate() @cname("SDL_OnApplicationWillTerminate");
+extern fn bool request_android_permission(char* permission, RequestAndroidPermissionCallback cb, void* userdata) @cname("SDL_RequestAndroidPermission");
+extern fn void send_android_back_button() @cname("SDL_SendAndroidBackButton");
+extern fn bool send_android_message(uint command, int param) @cname("SDL_SendAndroidMessage");
+extern fn bool seti_os_animation_callback(Window* window, int interval, IOSAnimationCallback callback, void* callbackParam) @cname("SDL_SetiOSAnimationCallback");
+extern fn void seti_os_event_pump(bool enabled) @cname("SDL_SetiOSEventPump");
+extern fn bool set_linux_thread_priority(long threadID, int priority) @cname("SDL_SetLinuxThreadPriority");
+extern fn bool set_linux_thread_priority_and_policy(long threadID, int sdlPriority, int schedPolicy) @cname("SDL_SetLinuxThreadPriorityAndPolicy");
+extern fn void set_windows_message_hook(WindowsMessageHook callback, void* userdata) @cname("SDL_SetWindowsMessageHook");
+extern fn void set_x11_event_hook(X11EventHook callback, void* userdata) @cname("SDL_SetX11EventHook");
+extern fn bool show_android_toast(char* message, int duration, int gravity, int xoffset, int yoffset) @cname("SDL_ShowAndroidToast");

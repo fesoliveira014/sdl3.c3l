@@ -1,0 +1,299 @@
+
+module sdl;
+
+// Constants
+const SOFTWARE_RENDERER = "software";
+const GPU_RENDERER      = "gpu";
+
+const DEBUG_TEXT_FONT_CHARACTER_SIZE = 8;
+
+
+// Types
+typedef GPURenderState = void;
+typedef Renderer = void;
+
+
+// Structs
+struct GPURenderStateCreateInfo
+{
+	GPUShader* fragment_shader; /**< The fragment shader to use when this render state is active */
+
+	int num_sampler_bindings;    /**< The number of additional fragment samplers to bind when this render state is active */
+	GPUTextureSamplerBinding* sampler_bindings;   /**< Additional fragment samplers to bind when this render state is active */
+
+	int num_storage_textures;    /**< The number of storage textures to bind when this render state is active */
+	GPUTexture** storage_textures;    /**< Storage textures to bind when this render state is active */
+
+	int num_storage_buffers;     /**< The number of storage buffers to bind when this render state is active */
+	GPUBuffer** storage_buffers;      /**< Storage buffers to bind when this render state is active */
+
+	PropertiesID props;         /**< A properties ID for extensions. Should be 0 if no extensions are needed. */
+}
+
+struct Texture
+{
+	PixelFormat format;     /**< The format of the texture, read-only */
+	int w;                  /**< The width of the texture, read-only. */
+	int h;                  /**< The height of the texture, read-only. */
+
+	int refcount;           /**< Application reference count, used when freeing texture */
+}
+
+struct Vertex
+{
+	FPoint position;        /**< Vertex position, in SDL_Renderer coordinates  */
+	FColor color;           /**< Vertex color */
+	FPoint tex_coord;       /**< Normalized texture coordinates, if needed */
+}
+
+
+// Enums
+enum RendererLogicalPresentation
+{
+	DISABLED,        /**< There is no logical size in effect */
+	STRETCH,         /**< The rendered content is stretched to the output resolution */
+	LETTERBOX,       /**< The rendered content is fit to the largest dimension and the other dimension is letterboxed with the clear color */
+	OVERSCAN,        /**< The rendered content is fit to the smallest dimension and the other dimension extends beyond the output bounds */
+	INTEGER_SCALE,   /**< The rendered content is scaled up by integer multiples to fit the output resolution */
+}
+
+enum TextureAccess
+{
+	STATIC,    /**< Changes rarely, not lockable */
+	STREAMING, /**< Changes frequently, lockable */
+	TARGET,    /**< Texture can be used as a render target */
+}
+
+constdef TextureAddressMode : CInt
+{
+	INVALID = -1,
+	AUTO,         /**< Wrapping is enabled if texture coordinates are outside [0, 1], this is the default */
+	CLAMP,        /**< Texture coordinates are clamped to the [0, 1] range */
+	WRAP,         /**< The texture is repeated (tiled) */
+}
+
+constdef RendererVSync : CInt
+{
+	DISABLED =  0,
+	ADAPTIVE = -1,
+}
+
+constdef RendererCreateProperties : ZString
+{
+	NAME_STRING                               = "SDL.renderer.create.name",
+	WINDOW_POINTER                            = "SDL.renderer.create.window",
+	SURFACE_POINTER                           = "SDL.renderer.create.surface",
+	OUTPUT_COLORSPACE_NUMBER                  = "SDL.renderer.create.output_colorspace",
+	PRESENT_VSYNC_NUMBER                      = "SDL.renderer.create.present_vsync",
+	GPU_DEVICE_POINTER                        = "SDL.renderer.create.gpu.device",
+	GPU_SHADERS_SPIRV_BOOLEAN                 = "SDL.renderer.create.gpu.shaders_spirv",
+	GPU_SHADERS_DXIL_BOOLEAN                  = "SDL.renderer.create.gpu.shaders_dxil",
+	GPU_SHADERS_MSL_BOOLEAN                   = "SDL.renderer.create.gpu.shaders_msl",
+	VULKAN_INSTANCE_POINTER                   = "SDL.renderer.create.vulkan.instance",
+	VULKAN_SURFACE_NUMBER                     = "SDL.renderer.create.vulkan.surface",
+	VULKAN_PHYSICAL_DEVICE_POINTER            = "SDL.renderer.create.vulkan.physical_device",
+	VULKAN_DEVICE_POINTER                     = "SDL.renderer.create.vulkan.device",
+	VULKAN_GRAPHICS_QUEUE_FAMILY_INDEX_NUMBER = "SDL.renderer.create.vulkan.graphics_queue_family_index",
+	VULKAN_PRESENT_QUEUE_FAMILY_INDEX_NUMBER  = "SDL.renderer.create.vulkan.present_queue_family_index",
+}
+
+constdef RendererProperties : ZString
+{
+	NAME_STRING                               = "SDL.renderer.name",
+	WINDOW_POINTER                            = "SDL.renderer.window",
+	SURFACE_POINTER                           = "SDL.renderer.surface",
+	VSYNC_NUMBER                              = "SDL.renderer.vsync",
+	MAX_TEXTURE_SIZE_NUMBER                   = "SDL.renderer.max_texture_size",
+	TEXTURE_FORMATS_POINTER                   = "SDL.renderer.texture_formats",
+	TEXTURE_WRAPPING_BOOLEAN                  = "SDL.renderer.texture_wrapping",
+	OUTPUT_COLORSPACE_NUMBER                  = "SDL.renderer.output_colorspace",
+	HDR_ENABLED_BOOLEAN                       = "SDL.renderer.HDR_enabled",
+	SDR_WHITE_POINT_FLOAT                     = "SDL.renderer.SDR_white_point",
+	HDR_HEADROOM_FLOAT                        = "SDL.renderer.HDR_headroom",
+	D3D9_DEVICE_POINTER                       = "SDL.renderer.d3d9.device",
+	D3D11_DEVICE_POINTER                      = "SDL.renderer.d3d11.device",
+	D3D11_SWAPCHAIN_POINTER                   = "SDL.renderer.d3d11.swap_chain",
+	D3D12_DEVICE_POINTER                      = "SDL.renderer.d3d12.device",
+	D3D12_SWAPCHAIN_POINTER                   = "SDL.renderer.d3d12.swap_chain",
+	D3D12_COMMAND_QUEUE_POINTER               = "SDL.renderer.d3d12.command_queue",
+	VULKAN_INSTANCE_POINTER                   = "SDL.renderer.vulkan.instance",
+	VULKAN_SURFACE_NUMBER                     = "SDL.renderer.vulkan.surface",
+	VULKAN_PHYSICAL_DEVICE_POINTER            = "SDL.renderer.vulkan.physical_device",
+	VULKAN_DEVICE_POINTER                     = "SDL.renderer.vulkan.device",
+	VULKAN_GRAPHICS_QUEUE_FAMILY_INDEX_NUMBER = "SDL.renderer.vulkan.graphics_queue_family_index",
+	VULKAN_PRESENT_QUEUE_FAMILY_INDEX_NUMBER  = "SDL.renderer.vulkan.present_queue_family_index",
+	VULKAN_SWAPCHAIN_IMAGE_COUNT_NUMBER       = "SDL.renderer.vulkan.swapchain_image_count",
+	GPU_DEVICE_POINTER                        = "SDL.renderer.gpu.device",
+}
+
+constdef TextureCreateProperties : ZString
+{
+	COLORSPACE_NUMBER           = "SDL.texture.create.colorspace",
+	FORMAT_NUMBER               = "SDL.texture.create.format",
+	ACCESS_NUMBER               = "SDL.texture.create.access",
+	WIDTH_NUMBER                = "SDL.texture.create.width",
+	HEIGHT_NUMBER               = "SDL.texture.create.height",
+	PALETTE_POINTER             = "SDL.texture.create.palette",
+	SDR_WHITE_POINT_FLOAT       = "SDL.texture.create.SDR_white_point",
+	HDR_HEADROOM_FLOAT          = "SDL.texture.create.HDR_headroom",
+	D3D11_TEXTURE_POINTER       = "SDL.texture.create.d3d11.texture",
+	D3D11_TEXTURE_U_POINTER     = "SDL.texture.create.d3d11.texture_u",
+	D3D11_TEXTURE_V_POINTER     = "SDL.texture.create.d3d11.texture_v",
+	D3D12_TEXTURE_POINTER       = "SDL.texture.create.d3d12.texture",
+	D3D12_TEXTURE_U_POINTER     = "SDL.texture.create.d3d12.texture_u",
+	D3D12_TEXTURE_V_POINTER     = "SDL.texture.create.d3d12.texture_v",
+	METAL_PIXELBUFFER_POINTER   = "SDL.texture.create.metal.pixelbuffer",
+	OPENGL_TEXTURE_NUMBER       = "SDL.texture.create.opengl.texture",
+	OPENGL_TEXTURE_UV_NUMBER    = "SDL.texture.create.opengl.texture_uv",
+	OPENGL_TEXTURE_U_NUMBER     = "SDL.texture.create.opengl.texture_u",
+	OPENGL_TEXTURE_V_NUMBER     = "SDL.texture.create.opengl.texture_v",
+	OPENGLES2_TEXTURE_NUMBER    = "SDL.texture.create.opengles2.texture",
+	OPENGLES2_TEXTURE_UV_NUMBER = "SDL.texture.create.opengles2.texture_uv",
+	OPENGLES2_TEXTURE_U_NUMBER  = "SDL.texture.create.opengles2.texture_u",
+	OPENGLES2_TEXTURE_V_NUMBER  = "SDL.texture.create.opengles2.texture_v",
+	VULKAN_TEXTURE_NUMBER       = "SDL.texture.create.vulkan.texture",
+	VULKAN_LAYOUT_NUMBER        = "SDL.texture.create.vulkan.layout",
+	GPU_TEXTURE_POINTER         = "SDL.texture.create.gpu.texture",
+	GPU_TEXTURE_UV_POINTER      = "SDL.texture.create.gpu.texture_uv",
+	GPU_TEXTURE_U_POINTER       = "SDL.texture.create.gpu.texture_u",
+	GPU_TEXTURE_V_POINTER       = "SDL.texture.create.gpu.texture_v",
+}
+
+constdef TextureProperties : ZString
+{
+	COLORSPACE_NUMBER               = "SDL.texture.colorspace",
+	FORMAT_NUMBER                   = "SDL.texture.format",
+	ACCESS_NUMBER                   = "SDL.texture.access",
+	WIDTH_NUMBER                    = "SDL.texture.width",
+	HEIGHT_NUMBER                   = "SDL.texture.height",
+	SDR_WHITE_POINT_FLOAT           = "SDL.texture.SDR_white_point",
+	HDR_HEADROOM_FLOAT              = "SDL.texture.HDR_headroom",
+	D3D11_TEXTURE_POINTER           = "SDL.texture.d3d11.texture",
+	D3D11_TEXTURE_U_POINTER         = "SDL.texture.d3d11.texture_u",
+	D3D11_TEXTURE_V_POINTER         = "SDL.texture.d3d11.texture_v",
+	D3D12_TEXTURE_POINTER           = "SDL.texture.d3d12.texture",
+	D3D12_TEXTURE_U_POINTER         = "SDL.texture.d3d12.texture_u",
+	D3D12_TEXTURE_V_POINTER         = "SDL.texture.d3d12.texture_v",
+	OPENGL_TEXTURE_NUMBER           = "SDL.texture.opengl.texture",
+	OPENGL_TEXTURE_UV_NUMBER        = "SDL.texture.opengl.texture_uv",
+	OPENGL_TEXTURE_U_NUMBER         = "SDL.texture.opengl.texture_u",
+	OPENGL_TEXTURE_V_NUMBER         = "SDL.texture.opengl.texture_v",
+	OPENGL_TEXTURE_TARGET_NUMBER    = "SDL.texture.opengl.target",
+	OPENGL_TEX_W_FLOAT              = "SDL.texture.opengl.tex_w",
+	OPENGL_TEX_H_FLOAT              = "SDL.texture.opengl.tex_h",
+	OPENGLES2_TEXTURE_NUMBER        = "SDL.texture.opengles2.texture",
+	OPENGLES2_TEXTURE_UV_NUMBER     = "SDL.texture.opengles2.texture_uv",
+	OPENGLES2_TEXTURE_U_NUMBER      = "SDL.texture.opengles2.texture_u",
+	OPENGLES2_TEXTURE_V_NUMBER      = "SDL.texture.opengles2.texture_v",
+	OPENGLES2_TEXTURE_TARGET_NUMBER = "SDL.texture.opengles2.target",
+	VULKAN_TEXTURE_NUMBER           = "SDL.texture.vulkan.texture",
+	GPU_TEXTURE_POINTER             = "SDL.texture.gpu.texture",
+	GPU_TEXTURE_UV_POINTER          = "SDL.texture.gpu.texture_uv",
+	GPU_TEXTURE_U_POINTER           = "SDL.texture.gpu.texture_u",
+	GPU_TEXTURE_V_POINTER           = "SDL.texture.gpu.texture_v",
+}
+
+
+// Functions
+extern fn bool add_vulkan_render_semaphores(Renderer* renderer, uint wait_stage_mask, long wait_semaphore, long signal_semaphore) @cname("SDL_AddVulkanRenderSemaphores");
+extern fn bool convert_event_to_render_coordinates(Renderer* renderer, Event* event) @cname("SDL_ConvertEventToRenderCoordinates");
+extern fn Renderer* create_gpu_renderer(GPUDevice* device, Window* window) @cname("SDL_CreateGPURenderer");
+extern fn GPURenderState* create_gpu_render_state(Renderer* renderer, GPURenderStateCreateInfo* createinfo) @cname("SDL_CreateGPURenderState");
+extern fn Renderer* create_renderer(Window* window, char* name) @cname("SDL_CreateRenderer");
+extern fn Renderer* create_renderer_with_properties(PropertiesID props) @cname("SDL_CreateRendererWithProperties");
+extern fn Renderer* create_software_renderer(Surface* surface) @cname("SDL_CreateSoftwareRenderer");
+extern fn Texture* create_texture(Renderer* renderer, PixelFormat format, TextureAccess access, int w, int h) @cname("SDL_CreateTexture");
+extern fn Texture* create_texture_from_surface(Renderer* renderer, Surface* surface) @cname("SDL_CreateTextureFromSurface");
+extern fn Texture* create_texture_with_properties(Renderer* renderer, PropertiesID props) @cname("SDL_CreateTextureWithProperties");
+extern fn bool create_window_and_renderer(char* title, int width, int height, WindowFlags window_flags, Window** window, Renderer** renderer) @cname("SDL_CreateWindowAndRenderer");
+extern fn void destroy_gpu_render_state(GPURenderState* state) @cname("SDL_DestroyGPURenderState");
+extern fn void destroy_renderer(Renderer* renderer) @cname("SDL_DestroyRenderer");
+extern fn void destroy_texture(Texture* texture) @cname("SDL_DestroyTexture");
+extern fn bool flush_renderer(Renderer* renderer) @cname("SDL_FlushRenderer");
+extern fn bool get_current_render_output_size(Renderer* renderer, int* w, int* h) @cname("SDL_GetCurrentRenderOutputSize");
+extern fn bool get_default_texture_scale_mode(Renderer* renderer, ScaleMode* scale_mode) @cname("SDL_GetDefaultTextureScaleMode");
+extern fn GPUDevice* get_gpu_renderer_device(Renderer* renderer) @cname("SDL_GetGPURendererDevice");
+extern fn int get_num_render_drivers() @cname("SDL_GetNumRenderDrivers");
+extern fn bool get_render_clip_rect(Renderer* renderer, Rect* rect) @cname("SDL_GetRenderClipRect");
+extern fn bool get_render_color_scale(Renderer* renderer, float* scale) @cname("SDL_GetRenderColorScale");
+extern fn bool get_render_draw_blend_mode(Renderer* renderer, BlendMode* blendMode) @cname("SDL_GetRenderDrawBlendMode");
+extern fn bool get_render_draw_color(Renderer* renderer, char* r, char* g, char* b, char* a) @cname("SDL_GetRenderDrawColor");
+extern fn bool get_render_draw_color_float(Renderer* renderer, float* r, float* g, float* b, float* a) @cname("SDL_GetRenderDrawColorFloat");
+extern fn char* get_render_driver(int index) @cname("SDL_GetRenderDriver");
+extern fn Renderer* get_renderer(Window* window) @cname("SDL_GetRenderer");
+extern fn Renderer* get_renderer_from_texture(Texture* texture) @cname("SDL_GetRendererFromTexture");
+extern fn char* get_renderer_name(Renderer* renderer) @cname("SDL_GetRendererName");
+extern fn PropertiesID get_renderer_properties(Renderer* renderer) @cname("SDL_GetRendererProperties");
+extern fn bool get_render_logical_presentation(Renderer* renderer, int* w, int* h, RendererLogicalPresentation* mode) @cname("SDL_GetRenderLogicalPresentation");
+extern fn bool get_render_logical_presentation_rect(Renderer* renderer, FRect* rect) @cname("SDL_GetRenderLogicalPresentationRect");
+extern fn void* get_render_metal_command_encoder(Renderer* renderer) @cname("SDL_GetRenderMetalCommandEncoder");
+extern fn void* get_render_metal_layer(Renderer* renderer) @cname("SDL_GetRenderMetalLayer");
+extern fn bool get_render_output_size(Renderer* renderer, int* w, int* h) @cname("SDL_GetRenderOutputSize");
+extern fn bool get_render_safe_area(Renderer* renderer, Rect* rect) @cname("SDL_GetRenderSafeArea");
+extern fn bool get_render_scale(Renderer* renderer, float* scaleX, float* scaleY) @cname("SDL_GetRenderScale");
+extern fn Texture* get_render_target(Renderer* renderer) @cname("SDL_GetRenderTarget");
+extern fn bool get_render_texture_address_mode(Renderer* renderer, TextureAddressMode* u_mode, TextureAddressMode* v_mode) @cname("SDL_GetRenderTextureAddressMode");
+extern fn bool get_render_viewport(Renderer* renderer, Rect* rect) @cname("SDL_GetRenderViewport");
+extern fn bool get_render_v_sync(Renderer* renderer, int* vsync) @cname("SDL_GetRenderVSync");
+extern fn Window* get_render_window(Renderer* renderer) @cname("SDL_GetRenderWindow");
+extern fn bool get_texture_alpha_mod(Texture* texture, char* alpha) @cname("SDL_GetTextureAlphaMod");
+extern fn bool get_texture_alpha_mod_float(Texture* texture, float* alpha) @cname("SDL_GetTextureAlphaModFloat");
+extern fn bool get_texture_blend_mode(Texture* texture, BlendMode* blendMode) @cname("SDL_GetTextureBlendMode");
+extern fn bool get_texture_color_mod(Texture* texture, char* r, char* g, char* b) @cname("SDL_GetTextureColorMod");
+extern fn bool get_texture_color_mod_float(Texture* texture, float* r, float* g, float* b) @cname("SDL_GetTextureColorModFloat");
+extern fn Palette* get_texture_palette(Texture* texture) @cname("SDL_GetTexturePalette");
+extern fn PropertiesID get_texture_properties(Texture* texture) @cname("SDL_GetTextureProperties");
+extern fn bool get_texture_scale_mode(Texture* texture, ScaleMode* scaleMode) @cname("SDL_GetTextureScaleMode");
+extern fn bool get_texture_size(Texture* texture, float* w, float* h) @cname("SDL_GetTextureSize");
+extern fn bool lock_texture(Texture* texture, Rect* rect, void** pixels, int* pitch) @cname("SDL_LockTexture");
+extern fn bool lock_texture_to_surface(Texture* texture, Rect* rect, Surface** surface) @cname("SDL_LockTextureToSurface");
+extern fn bool render_clear(Renderer* renderer) @cname("SDL_RenderClear");
+extern fn bool render_clip_enabled(Renderer* renderer) @cname("SDL_RenderClipEnabled");
+extern fn bool render_coordinates_from_window(Renderer* renderer, float window_x, float window_y, float* x, float* y) @cname("SDL_RenderCoordinatesFromWindow");
+extern fn bool render_coordinates_to_window(Renderer* renderer, float x, float y, float* window_x, float* window_y) @cname("SDL_RenderCoordinatesToWindow");
+extern fn bool render_debug_text(Renderer* renderer, float x, float y, char* str) @cname("SDL_RenderDebugText");
+extern fn bool render_debug_text_format(Renderer* renderer, float x, float y, char* fmt, ...) @cname("SDL_RenderDebugTextFormat");
+extern fn bool render_fill_rect(Renderer* renderer, FRect* rect) @cname("SDL_RenderFillRect");
+extern fn bool render_fill_rects(Renderer* renderer, FRect* rects, int count) @cname("SDL_RenderFillRects");
+extern fn bool render_geometry(Renderer* renderer, Texture* texture, Vertex* vertices, int num_vertices, int* indices, int num_indices) @cname("SDL_RenderGeometry");
+extern fn bool render_geometry_raw(Renderer* renderer, Texture* texture, float* xy, int xy_stride, FColor* color, int color_stride, float* uv, int uv_stride, int num_vertices, void* indices, int num_indices, int size_indices) @cname("SDL_RenderGeometryRaw");
+extern fn bool render_line(Renderer* renderer, float x1, float y1, float x2, float y2) @cname("SDL_RenderLine");
+extern fn bool render_lines(Renderer* renderer, FPoint* points, int count) @cname("SDL_RenderLines");
+extern fn bool render_point(Renderer* renderer, float x, float y) @cname("SDL_RenderPoint");
+extern fn bool render_points(Renderer* renderer, FPoint* points, int count) @cname("SDL_RenderPoints");
+extern fn bool render_present(Renderer* renderer) @cname("SDL_RenderPresent");
+extern fn Surface* render_read_pixels(Renderer* renderer, Rect* rect) @cname("SDL_RenderReadPixels");
+extern fn bool render_rect(Renderer* renderer, FRect* rect) @cname("SDL_RenderRect");
+extern fn bool render_rects(Renderer* renderer, FRect* rects, int count) @cname("SDL_RenderRects");
+extern fn bool render_texture(Renderer* renderer, Texture* texture, FRect* srcrect, FRect* dstrect) @cname("SDL_RenderTexture");
+extern fn bool render_texture9_grid(Renderer* renderer, Texture* texture, FRect* srcrect, float left_width, float right_width, float top_height, float bottom_height, float scale, FRect* dstrect) @cname("SDL_RenderTexture9Grid");
+extern fn bool render_texture9_grid_tiled(Renderer* renderer, Texture* texture, FRect* srcrect, float left_width, float right_width, float top_height, float bottom_height, float scale, FRect* dstrect, float tileScale) @cname("SDL_RenderTexture9GridTiled");
+extern fn bool render_texture_affine(Renderer* renderer, Texture* texture, FRect* srcrect, FPoint* origin, FPoint* right, FPoint* down) @cname("SDL_RenderTextureAffine");
+extern fn bool render_texture_rotated(Renderer* renderer, Texture* texture, FRect* srcrect, FRect* dstrect, double angle, FPoint* center, FlipMode flip) @cname("SDL_RenderTextureRotated");
+extern fn bool render_texture_tiled(Renderer* renderer, Texture* texture, FRect* srcrect, float scale, FRect* dstrect) @cname("SDL_RenderTextureTiled");
+extern fn bool render_viewport_set(Renderer* renderer) @cname("SDL_RenderViewportSet");
+extern fn bool set_default_texture_scale_mode(Renderer* renderer, ScaleMode scale_mode) @cname("SDL_SetDefaultTextureScaleMode");
+extern fn bool set_gpu_render_state(Renderer* renderer, GPURenderState* state) @cname("SDL_SetGPURenderState");
+extern fn bool set_gpu_render_state_fragment_uniforms(GPURenderState* state, uint slot_index, void* data, uint length) @cname("SDL_SetGPURenderStateFragmentUniforms");
+extern fn bool set_render_clip_rect(Renderer* renderer, Rect* rect) @cname("SDL_SetRenderClipRect");
+extern fn bool set_render_color_scale(Renderer* renderer, float scale) @cname("SDL_SetRenderColorScale");
+extern fn bool set_render_draw_blend_mode(Renderer* renderer, BlendMode blendMode) @cname("SDL_SetRenderDrawBlendMode");
+extern fn bool set_render_draw_color(Renderer* renderer, char r, char g, char b, char a) @cname("SDL_SetRenderDrawColor");
+extern fn bool set_render_draw_color_float(Renderer* renderer, float r, float g, float b, float a) @cname("SDL_SetRenderDrawColorFloat");
+extern fn bool set_render_logical_presentation(Renderer* renderer, int w, int h, RendererLogicalPresentation mode) @cname("SDL_SetRenderLogicalPresentation");
+extern fn bool set_render_scale(Renderer* renderer, float scaleX, float scaleY) @cname("SDL_SetRenderScale");
+extern fn bool set_render_target(Renderer* renderer, Texture* texture) @cname("SDL_SetRenderTarget");
+extern fn bool set_render_texture_address_mode(Renderer* renderer, TextureAddressMode u_mode, TextureAddressMode v_mode) @cname("SDL_SetRenderTextureAddressMode");
+extern fn bool set_render_viewport(Renderer* renderer, Rect* rect) @cname("SDL_SetRenderViewport");
+extern fn bool set_render_v_sync(Renderer* renderer, RendererVSync vsync) @cname("SDL_SetRenderVSync");
+extern fn bool set_texture_alpha_mod(Texture* texture, char alpha) @cname("SDL_SetTextureAlphaMod");
+extern fn bool set_texture_alpha_mod_float(Texture* texture, float alpha) @cname("SDL_SetTextureAlphaModFloat");
+extern fn bool set_texture_blend_mode(Texture* texture, BlendMode blendMode) @cname("SDL_SetTextureBlendMode");
+extern fn bool set_texture_color_mod(Texture* texture, char r, char g, char b) @cname("SDL_SetTextureColorMod");
+extern fn bool set_texture_color_mod_float(Texture* texture, float r, float g, float b) @cname("SDL_SetTextureColorModFloat");
+extern fn bool set_texture_palette(Texture* texture, Palette* palette) @cname("SDL_SetTexturePalette");
+extern fn bool set_texture_scale_mode(Texture* texture, ScaleMode scaleMode) @cname("SDL_SetTextureScaleMode");
+extern fn void unlock_texture(Texture* texture) @cname("SDL_UnlockTexture");
+extern fn bool update_nv_texture(Texture* texture, Rect* rect, char* yplane, int ypitch, char* uvplane, int uvpitch) @cname("SDL_UpdateNVTexture");
+extern fn bool update_texture(Texture* texture, Rect* rect, void* pixels, int pitch) @cname("SDL_UpdateTexture");
+extern fn bool update_yuv_texture(Texture* texture, Rect* rect, char* yplane, int ypitch, char* uplane, int upitch, char* vplane, int vpitch) @cname("SDL_UpdateYUVTexture");
