@@ -1,5 +1,6 @@
 {
 	"provides" : "sdl3",
+	"linklib-dir" : "linked-libs",
 	"targets" : {
 		"android-aarch64" : {
 			"link-args" : [],
