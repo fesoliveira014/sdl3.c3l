@@ -1,9 +1,12 @@
 
-module sdl;
+module sdl::vulkan;
+
+import sdl;
+import sdl::stdinc;
 
 // SDL3 Vulkan helpers. VkInstance/VkSurfaceKHR are passed as u64 (handle ABI) so this
 // binding stays independent of lib/vk.c3l.
-extern fn bool    vulkan_create_surface(Window* window, ulong instance, void* allocator, ulong* out_surface) @cname("SDL_Vulkan_CreateSurface");
-extern fn void    vulkan_destroy_surface(ulong instance, ulong surface, void* allocator) @cname("SDL_Vulkan_DestroySurface");
-extern fn char**  vulkan_get_instance_extensions(uint* out_count) @cname("SDL_Vulkan_GetInstanceExtensions");
-extern fn FunctionPointer vulkan_get_vk_get_instance_proc_addr() @cname("SDL_Vulkan_GetVkGetInstanceProcAddr");
+extern fn bool    create_surface(Window* window, ulong instance, void* allocator, ulong* out_surface) @cname("SDL_Vulkan_CreateSurface");
+extern fn void    destroy_surface(ulong instance, ulong surface, void* allocator) @cname("SDL_Vulkan_DestroySurface");
+extern fn char**  get_instance_extensions(uint* out_count) @cname("SDL_Vulkan_GetInstanceExtensions");
+extern fn FunctionPointer get_vk_get_instance_proc_addr() @cname("SDL_Vulkan_GetVkGetInstanceProcAddr");
