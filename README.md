@@ -12,3 +12,10 @@
 
 #### Documentation
 https://wiki.libsdl.org/SDL3/FrontPage
+
+## Use (git submodule)
+
+    git submodule add https://github.com/fesoliveira014/sdl3.c3l lib/sdl3.c3l
+
+Then in `project.json`: `"dependency-search-paths": [ "lib" ]`, `"dependencies": [ "sdl3" ]`.
+The module is `sdl`. This repo ships bindings only — provide your own SDL3 library to link.
