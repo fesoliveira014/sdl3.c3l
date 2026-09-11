@@ -7,9 +7,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: sdl3.c3l
-      - name: install c3c 0.8.0
+      - name: install c3c 0.8.3
         run: |
-          curl -L -o c3c.tar.gz https://github.com/c3lang/c3c/releases/download/v0.8.0/c3-linux.tar.gz
+          curl -L -o c3c.tar.gz https://github.com/c3lang/c3c/releases/download/v0.8.3/c3-linux.tar.gz
           tar xf c3c.tar.gz
           echo "$PWD/c3" >> "$GITHUB_PATH"
       - name: smoke compile (static-lib, no system SDL3 needed)
@@ -28,5 +28,14 @@ jobs:
           module smoke;
           import sdl;
           fn void use() { sdl::InitFlags f = { .video = true }; sdl::Window* w; }
+          fn sdl::Thread* start_thread(sdl::ThreadFunction callback, void* data)
+          {
+              return sdl::create_thread(callback, "smoke", data);
+          }
+          fn sdl::Thread* start_thread_with_properties(sdl::PropertiesID props)
+          {
+              return sdl::create_thread_with_properties(props);
+          }
           C3
-          c3c build smoke
+          c3c build smoke --warn-deprecation=error
+          c3c compile -C main.c3 --libdir .. --lib sdl3 --target windows-x64 --warn-deprecation=error
