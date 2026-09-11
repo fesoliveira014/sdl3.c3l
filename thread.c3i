@@ -36,8 +36,8 @@ constdef ThreadCreateProperties : ZString
 
 
 // Macros
-extern fn uptr _beginthreadex(void* security, uint stack_size, void* start_address, void* arglist, uint initflag, uint* thraddr) @if(env::WIN32);
-extern fn uptr _endthreadex(uint retval) @if(env::WIN32);
+extern fn uptr _beginthreadex(void* security, uint stack_size, void* start_address, void* arglist, uint initflag, uint* thraddr) @feat(WIN32);
+extern fn uptr _endthreadex(uint retval) @feat(WIN32);
 macro Thread* create_thread(ThreadFunction fn_, ZString name, void* data)
 {
 	$if (env::WIN32):
