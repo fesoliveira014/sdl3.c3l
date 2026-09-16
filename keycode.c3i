@@ -264,7 +264,7 @@ constdef Keycode : uint
 	KEY_RHYPER                 = 0x20000007, /**< Extended key Right Hyper */
 }
 
-constdef Keymod : uint
+constdef Keymod : ushort
 {
 	KMOD_NONE   = 0x0000, /**< no modifier is applicable. */
 	KMOD_LSHIFT = 0x0001, /**< the left Shift key is down. */
