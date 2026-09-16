@@ -27,6 +27,9 @@ jobs:
           cat > main.c3 <<'C3'
           module smoke;
           import sdl;
+          $assert sdl::Keymod::size == 2;
+          $assert $reflect(sdl::KeyboardEvent.down).offset == 36;
+          $assert $reflect(sdl::KeyboardEvent.repeat).offset == 37;
           fn void use() { sdl::InitFlags f = { .video = true }; sdl::Window* w; }
           fn sdl::Thread* start_thread(sdl::ThreadFunction callback, void* data)
           {
