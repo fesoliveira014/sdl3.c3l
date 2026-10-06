@@ -2,7 +2,7 @@ name: ci
 on: [push, pull_request]
 jobs:
   smoke:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,7 +19,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: sdl3.c3l/sdl-build
-          key: sdl3-static-release-3.4.16-linux-x64-${{ hashFiles('sdl3.c3l/.github/scripts/build-sdl-linux.sh') }}
+          key: sdl3-static-release-3.4.16-linux-x64-ubuntu2204-${{ hashFiles('sdl3.c3l/.github/scripts/build-sdl-linux.sh') }}
       - name: build static SDL3
         run: bash sdl3.c3l/.github/scripts/build-sdl-linux.sh
       - name: install c3c 0.8.3
