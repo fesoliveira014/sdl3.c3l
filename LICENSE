@@ -23,5 +23,6 @@ SOFTWARE.
 ---
 
 This is a C3 binding (MIT). SDL3 itself is a separate library, licensed under the
-zlib license — see https://github.com/libsdl-org/SDL. This binding ships no SDL3
-binaries; consumers link their own SDL3.
+zlib license (https://github.com/libsdl-org/SDL). The release artifacts
+(sdl3-v<version>-<platform>.c3l) contain a statically linked SDL3 build under
+linked-libs/<platform>/; its license text is LICENSE.SDL.txt in the same artifact.

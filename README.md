@@ -19,4 +19,4 @@ https://wiki.libsdl.org/SDL3/FrontPage
     git submodule add https://github.com/fesoliveira014/sdl3.c3l lib/sdl3.c3l
 
 Then in `project.json`: `"dependency-search-paths": [ "lib" ]`, `"dependencies": [ "sdl3" ]`.
-The module is `sdl`. This repo ships bindings only — provide your own SDL3 library to link.
+The module is `sdl`. The repository holds the bindings only. Each release publishes `sdl3-v<version>-linux-x64.c3l` and `sdl3-v<version>-windows-x64.c3l`, which add a static SDL3 (upstream `release-3.4.16`, Windows built /MT); extract one into your `lib/` directory. A source checkout needs a static SDL3 under `linked-libs/<platform>/` (`.github/scripts/build-sdl-linux.sh` builds it on Linux).
