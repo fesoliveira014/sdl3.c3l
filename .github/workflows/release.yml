@@ -87,8 +87,8 @@ jobs:
             rm -rf "$stage"
             mkdir -p "$stage/linked-libs/$platform"
             cp manifest.json LICENSE README.md ./*.c3i "$stage/"
-            cp native/linux-x64/LICENSE.SDL.txt "$stage/LICENSE.SDL.txt"
-            cp native/$platform/linked-libs/$platform/* "$stage/linked-libs/$platform/"
+            find native/linux-x64 -name LICENSE.SDL.txt -exec cp {} "$stage/LICENSE.SDL.txt" \;
+            find "native/$platform" \( -name '*.a' -o -name '*.lib' \) -exec cp {} "$stage/linked-libs/$platform/" \;
             (cd "$stage" && find . -type f | sed 's|^\./||' | LC_ALL=C sort | zip -X -q "$GITHUB_WORKSPACE/dist/sdl3-v$version-$platform.c3l" -@)
           done
           (cd dist && sha256sum ./*.c3l | sed 's|\./||' > SHA256SUMS && cat SHA256SUMS)
