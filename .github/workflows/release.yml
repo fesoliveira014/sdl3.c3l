@@ -1,0 +1,141 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+env:
+  SDL_TAG: release-3.4.16
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: install SDL build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
+            libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libwayland-dev \
+            wayland-protocols libdecor-0-dev libasound2-dev libdrm-dev libgbm-dev libegl-dev \
+            libgl-dev libudev-dev libdbus-1-dev
+      - name: build static SDL3
+        run: bash .github/scripts/build-sdl-linux.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-linux-x64
+          path: |
+            linked-libs/linux-x64/libSDL3.a
+            LICENSE.SDL.txt
+          if-no-files-found: error
+
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: build static SDL3
+        shell: pwsh
+        run: |
+          git clone --quiet --depth 1 --branch $env:SDL_TAG https://github.com/libsdl-org/SDL.git sdl-src
+          cmake -S sdl-src -B sdl-build -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DSDL_STATIC=ON -DSDL_SHARED=OFF `
+            -DSDL_TEST_LIBRARY=OFF -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF `
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+          if ($LASTEXITCODE -ne 0) { throw "configure failed" }
+          cmake --build sdl-build --parallel
+          if ($LASTEXITCODE -ne 0) { throw "build failed" }
+          New-Item -ItemType Directory -Force linked-libs/windows-x64 | Out-Null
+          Copy-Item sdl-build/SDL3-static.lib linked-libs/windows-x64/SDL3.lib
+          Get-Item linked-libs/windows-x64/SDL3.lib
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-windows-x64
+          path: linked-libs/windows-x64/SDL3.lib
+          if-no-files-found: error
+
+  package:
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-linux-x64
+          path: native/linux-x64
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-windows-x64
+          path: native/windows-x64
+      - name: install c3c 0.8.3
+        run: |
+          curl -L -o c3c.tar.gz https://github.com/c3lang/c3c/releases/download/v0.8.3/c3-linux.tar.gz
+          tar xf c3c.tar.gz
+          echo "$PWD/c3" >> "$GITHUB_PATH"
+      - name: pack
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == tag ]]; then version="${GITHUB_REF_NAME#v}"; else version=0.0.0-dev; fi
+          mkdir -p dist
+          for platform in linux-x64 windows-x64; do
+            stage="$RUNNER_TEMP/stage-$platform"
+            rm -rf "$stage"
+            mkdir -p "$stage/linked-libs/$platform"
+            cp manifest.json LICENSE README.md ./*.c3i "$stage/"
+            cp native/linux-x64/LICENSE.SDL.txt "$stage/LICENSE.SDL.txt"
+            cp native/$platform/linked-libs/$platform/* "$stage/linked-libs/$platform/"
+            (cd "$stage" && find . -type f | sed 's|^\./||' | LC_ALL=C sort | zip -X -q "$GITHUB_WORKSPACE/dist/sdl3-v$version-$platform.c3l" -@)
+          done
+          (cd dist && sha256sum ./*.c3l | sed 's|\./||' > SHA256SUMS && cat SHA256SUMS)
+      - name: smoke compile packed artifacts
+        run: |
+          shopt -s nullglob
+          for artifact in dist/*.c3l; do
+            dir="$RUNNER_TEMP/smoke-$(basename "$artifact" .c3l)"
+            rm -rf "$dir"; mkdir -p "$dir"
+            unzip -q "$artifact" -d "$dir"
+            test -f "$dir/manifest.json"
+            c3c compile-only --no-obj "$dir"/*.c3i
+          done
+      - name: link smoke against the packed linux-x64 library
+        run: |
+          dir="$RUNNER_TEMP/link-smoke"
+          rm -rf "$dir"; mkdir -p "$dir/lib" "$dir/app"
+          unzip -q dist/sdl3-v*-linux-x64.c3l -d "$dir/lib/sdl3.c3l"
+          cd "$dir/app"
+          cat > project.json <<'JSON'
+          {
+            "langrev": "1",
+            "dependency-search-paths": [ "../lib" ],
+            "dependencies": [ "sdl3" ],
+            "sources": [ "main.c3" ],
+            "targets": { "app": { "type": "executable" } }
+          }
+          JSON
+          cat > main.c3 <<'C3'
+          module app;
+          import sdl;
+          import std::io;
+          fn int main()
+          {
+              io::printfn("SDL %d", sdl::get_version());
+              return 0;
+          }
+          C3
+          c3c build app
+          ./out/app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: dist/*
+          if-no-files-found: error
+      - name: publish
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --generate-notes
