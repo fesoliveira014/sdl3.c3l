@@ -18,7 +18,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ninja-build libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
             libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libwayland-dev \
-            wayland-protocols libdecor-0-dev libasound2-dev libdrm-dev libgbm-dev libegl-dev \
+            wayland-protocols libdecor-0-dev libasound2-dev libegl-dev \
             libgl-dev libudev-dev libdbus-1-dev
       - name: build static SDL3
         run: bash .github/scripts/build-sdl-linux.sh

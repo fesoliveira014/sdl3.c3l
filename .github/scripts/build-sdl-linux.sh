@@ -16,7 +16,7 @@ cmake -S "$work/src" -B "$work/build" -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DSDL_STATIC=ON -DSDL_SHARED=OFF \
     -DSDL_TEST_LIBRARY=OFF -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF \
-    -DSDL_X11=ON -DSDL_WAYLAND=ON
+    -DSDL_X11=ON -DSDL_WAYLAND=ON -DSDL_KMSDRM=OFF
 cmake --build "$work/build" --parallel
 
 mkdir -p "$root/linked-libs/linux-x64"
